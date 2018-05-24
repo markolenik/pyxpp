@@ -1,0 +1,38 @@
+# Morris Lecar model.
+
+# Default parameters.
+par G=0.6
+par GL=.15,GCA=0.3,GK=0.6
+par VK=-70,VL=-50,VCA=100
+par VA=1,VB=14.5,VC=4.,VD=15.0
+par IAPP=6.0,TAUW=100
+par TAUD=1000
+par TAUS=100
+par VTHETA=0
+
+# Define some functions.
+minf(v)=.5*(1+tanh((v-VA)/VB))
+winf(v)= .5*(1+tanh((v-VC)/VD))
+
+H(x)=.5+.5*tanh(0.2*x)
+
+dv/dt= -GL*(v-VL)-GK*w*(v-VK)-GCA*minf(v)*(v-VCA)+IAPP
+dw/dt= (winf(v)-w)/TAUW
+
+# Some initial conditions -- not necessary but for completeness.
+init v = -5.0
+init w = 0.1
+
+aux vscaled=v/50
+
+# NOTE: Command line options do not allow changes of graphical parameters.
+
+# Integration.
+@ TOTAL=5000,DT=.5
+@ xlo=-64,xhi=75,ylo=-1,yhi=1.
+@ xplot=v,yplot=w
+@ MAXSTOR=40000000,BOUNDS=100000,method=stiff
+@ NMESH=150
+@ SIMPLOT=1
+
+done
