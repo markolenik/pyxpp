@@ -30,4 +30,4 @@ If referencing xply in a paper, please use
 And as BibTeX:
 
 1
-`@misc{xppy, author = {Olenik, Mark}, title = {{xply}}, url = {https://github.com/itsok-dontworry/xply}, year = {2018} }`
+`@misc{xppy, author = {Olenik, Mark}, title = {{xply}}, url = {https://github.com/mark-olenik/xply}, year = {2018} }`
