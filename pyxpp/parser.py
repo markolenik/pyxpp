@@ -56,12 +56,14 @@ def p_program_error(p):
     p[0] = []
     p.parser.error = 1
 
+
 # Statements.
 
 # Format of all XPP statements.
 def p_statement(p):
     """ statement : command NEWLINE """
     p[0] = p[1]
+
 
 # Blank line.
 def p_statement_newline(p):
@@ -383,4 +385,4 @@ def p_error(p):
         print("SYNTAX ERROR AT EOF")
 
 
-parser = yacc.yacc(debug=True)
+parser = yacc.yacc()

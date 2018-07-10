@@ -472,6 +472,7 @@ def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None, yh
 
     if cleanup and os.path.isfile(NULLCLINES_FILE):
             os.remove(NULLCLINES_FILE)
+            os.remove(outfile)
 
     return ret
 
