@@ -3,7 +3,11 @@
 from typing import NamedTuple
 import scipy as sp
 
+<<<<<<< HEAD
 from . import pyxpp as xpp
+=======
+from . import pyxpp.pyxpp as xpp
+>>>>>>> e2534587e3eee7b2c975fd6385c7dfa86be3ff34
 
 
 class Model(NamedTuple):
