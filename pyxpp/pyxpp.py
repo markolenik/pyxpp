@@ -19,7 +19,7 @@
 
 
 
-import collections
+from collections import OrderedDict
 import subprocess
 import csv
 import os
@@ -151,9 +151,11 @@ def dry_run(xppfile, outfile='output.dat', cleanup=True):
 
     return res
     
-def _query_info(xppfile, info, outfile='output.dat', quiet=True, cleanup=True):
+
+def _query_info(xppfile, info, outfile='output.dat', quiet=True,
+                cleanup=True):
     """
-    Query information by writing and reading it to and from a temporary file.
+    Query information by writing it to and from a temporary file.
 
     Parameters
     ----------
@@ -163,7 +165,7 @@ def _query_info(xppfile, info, outfile='output.dat', quiet=True, cleanup=True):
         Type of information to read. One of: 
         - qsets : Query internal sets.
         - qpars : Query parameters.
-        - qics : Query initial conditions.
+        - qics : Query ICs.
     outfile : str, optional
         Name of temporary file.
     quiet : bool, optional
@@ -181,19 +183,19 @@ def _query_info(xppfile, info, outfile='output.dat', quiet=True, cleanup=True):
                                 % (xppfile, info, outfile, int(quiet)),
                                 shell=True)
     if os.path.isfile(outfile): # success
-        _dat = sp.genfromtxt('output.dat', dtype=[('f0', list), ('f1', float)])
+        _dat = sp.genfromtxt(outfile, dtype=[('f0', list), ('f1', float)])
         # Convert variable names from bytes to strings.
         dat = [(str.lower(x[0].decode('utf-8')), x[1]) for x in _dat]
         if cleanup:
             os.remove(outfile)
-        odict = collections.OrderedDict(dat)
+        odict = OrderedDict(dat)
         return odict
 
     else:
         print('Error in querying info.')
 
 
-def read_state_vars(xppfile, **kwargs):
+def read_state_vars(xppfile):
     """
     Read state variables from XPP file.
 
@@ -216,7 +218,49 @@ def read_state_vars(xppfile, **kwargs):
     return state_vars
 
 
-def read_pars(xppfile, **kwargs):
+def read_aux_vars(xppfile):
+    """
+    Read auxilliary variable from XPP file.
+
+    Parameters
+    ----------
+    xppfile : str
+        XPP file with system definition.
+
+    Returns
+    -------
+    out: array_like of str
+        Auxilliary variables.
+
+    """
+    syntax = parse_file(xppfile)
+    opt_tuples = []
+    opts = [cmd for cmd in syntax if cmd[0]=='AUX']
+    state_vars = sp.array([opt[1][1] for opt in opts])
+    return state_vars
+
+
+def read_vars(xppfile, **kwargs):
+    """
+    Read state and auxilliary variables from XPP file.
+
+    Parameters
+    ----------
+    xppfile : str
+        XPP file with system definition.
+
+    Returns
+    -------
+    out: array_like of str
+        All variables.
+
+    """
+    state_vars = read_state_vars(xppfile)
+    aux_vars = read_aux_vars(xppfile)
+    return sp.concatenate((state_vars, aux_vars))
+
+
+def read_pars(xppfile):
     """
     Read parameters from XPP file.
     
@@ -231,13 +275,16 @@ def read_pars(xppfile, **kwargs):
         Parameters.
 
     """
-    query = _query_info(xppfile, '-qpars', **kwargs)
-    return query
+    syntax = parse_file(xppfile)
+    pars = [(cmd[1][1], float(generator.g_expr(cmd[1][2])))
+            for cmd in syntax
+            if cmd[0]=='PAR']
+    return OrderedDict(pars)
 
 
-def read_inits(xppfile, **kwargs):
+def read_ics(xppfile):
     """
-    Read initial conditions from XPP file.
+    Return IC and aux vales from XPP file.
     
     Parameters
     ----------
@@ -247,14 +294,26 @@ def read_inits(xppfile, **kwargs):
     Returns
     -------
     out : array_like
-        Array with initial conditions ordered according to 
-        associated state variables.
+        Array with IC and aux values ordered according to 
+        associated variables.
 
     """
     state_vars = read_state_vars(xppfile)
-    query = _query_info(xppfile, '-qics', **kwargs)
-    return sp.array(list(query.values()))[:len(state_vars)]
-    
+    aux_vars = read_aux_vars(xppfile)
+
+    syntax = parse_file(xppfile)
+    # Get touples of ICs in form of (variable, value).
+    inits = OrderedDict([(cmd[1][1], float(generator.g_expr(cmd[1][2])))
+                         for cmd in syntax
+                         if cmd[0]=='INIT'])
+    # Make sure order is correct.
+    inits_ord = OrderedDict((k, inits[k]) for k in state_vars)
+    ics = sp.array(list(inits_ord.values()))
+    # XPP initialises of aux at 0.
+    auxs = sp.zeros(len(aux_vars))
+
+    return sp.concatenate((ics, auxs))
+
 
 def read_opts(xppfile):
     """
@@ -271,7 +330,6 @@ def read_opts(xppfile):
         Options.
 
     """
-    # Options cannot be queried and must be parsed directly from file.
     syntax = parse_file(xppfile)
     opt_tuples = []
     opts = [cmd for cmd in syntax if cmd[0]=='OPT']
@@ -281,12 +339,12 @@ def read_opts(xppfile):
             opt = float(opt)
         key = cmd[1][1]
         opt_tuples.append((key, opt))
-    return collections.OrderedDict(opt_tuples)
+    return OrderedDict(opt_tuples)
     
 
 def _append_uid(fname, uid):
     """
-    Run XPP in silent mode and return result.
+    Append UID to file.
     
     Parameters
     ----------
@@ -308,7 +366,7 @@ def _append_uid(fname, uid):
         return parts[0]+'-'+str(uid)
 
 
-def run(xppfile, inits=None, outfile='output.dat', initfile='init.dat',
+def run(xppfile, ics=None, outfile='output.dat', icfile='ics.dat',
         parfile=None, uid=None, cleanup=True, **kwargs):
     """
     Run XPP simulation in silent mode and return result.
@@ -317,12 +375,12 @@ def run(xppfile, inits=None, outfile='output.dat', initfile='init.dat',
     ----------
     xppfile : str
         XPP file with system definition.
-    inits : array_like, optional
-        Initial conditions.
+    ics : array_like, optional
+        ICs.
     outfile : str, optional
         Name of temporary output file.
-    initfile : str, optional
-        Load initial conditions from the named file.
+    icfile : str, optional
+        Load ICs from the named file.
     parfile : str, optional
         Load parameters from the named file.
     uid : int, optional
@@ -350,26 +408,23 @@ def run(xppfile, inits=None, outfile='output.dat', initfile='init.dat',
     # Append unique identifier.
     if uid is not None:
         outfile = _append_uid(outfile, uid)
-        icfile = _append_uid(initfile, uid)
+        icfile = _append_uid(icfile, uid)
 
     # Write initial conditions to file.
-    if inits is not None:
-        # Have to append auxilliary variables to inits for XPP.
-        allinits = list(_query_info(xppfile, '-qics').values())
-        newinits = sp.concatenate((inits, allinits[len(inits):]))
-        sp.savetxt(initfile, list(newinits)) 
+    if ics is not None:
+        sp.savetxt(icfile, list(ics)) 
     else:
-        sp.savetxt(initfile, read_inits(xppfile, outfile=outfile))
+        ics = read_ics(xppfile)
+        sp.savetxt(icfile, ics)
 
     # Prepare XPP command.
-    command = "xppaut %s -silent -with '%s' -runnow -outfile %s -icfile %s" %\
-              (xppfile, optstr, outfile, initfile)
+    command = (f"xppaut {xppfile} -silent -with '{optstr}' -runnow "
+               f"-outfile {outfile} -icfile {icfile}")
 
     if parfile is not None:
         command += ' -parfile ' + parfile
 
     out = subprocess.PIPE
-
     # Run command and read result.
     res = subprocess.run(command, stdout=out, stderr=out, shell=True)
     if res.returncode != 0:
@@ -378,15 +433,16 @@ def run(xppfile, inits=None, outfile='output.dat', initfile='init.dat',
     outdat = sp.genfromtxt(outfile, delimiter=' ')
 
     # Cleanup if necessary.
-    if cleanup and os.path.isfile(outfile):
+    if cleanup and os.path.isfile(outfile) and os.path.isfile(icfile):
         os.remove(outfile)
-        os.remove(initfile)
+        os.remove(icfile)
 
     return outdat
 
 
-def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None, yhi=None,
-               cleanup=True, outfile='out.ode', **kwargs):
+def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None,
+               ylo=None, yhi=None, cleanup=True, outfile='out.ode',
+               **kwargs):
     """
     Compute nullclines.
     
