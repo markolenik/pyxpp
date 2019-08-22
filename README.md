@@ -32,11 +32,10 @@ If referencing PyXPP in a paper, please use
 And as BibTeX:
 
 ```
-@software{pyxpp,
-  author = {Olenik, Mark},
-  title = {PyXPP},
-  url = {https://gitlab.com/molenik/PyXPP},
-  version = {0.1.0}
-  date = {2018-07-10}
+@Misc{pyxpp,
+  author       = {Mark Olenik},
+  title        = {Py{XPP}},
+  howpublished = {https://gitlab.com/molenik/PyXPP},
+  year         = {2018--2019}
 }
 ```
