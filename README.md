@@ -27,7 +27,7 @@ A demo and tutorial can be found [here](https://gitlab.com/molenik/PyXPP/blob/ma
 
 If referencing PyXPP in a paper, please use
 
-`Olenik, M. PyXPP. 2018. Available at: https://gitlab.com/molenik/PyXPP.`
+`Olenik, M. PyXPP. 2018. Available at: https://gitlab.com/markolenik/PyXPP.`
 
 And as BibTeX:
 
