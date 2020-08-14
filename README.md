@@ -16,7 +16,7 @@
 - [XPP](http://www.math.pitt.edu/%7Ebard/xpp/xpp.html). The latest XPP Ubuntu binary provided as `xppaut`. You may need to change permissions to executable. Many distros also provide the binaries in their repos, e.g. Debian, Ubuntu, Arch (AUR).
 
 ### Tutorial
-A demo and tutorial can be found [here](https://gitlab.com/molenik/PyXPP/blob/master/wiki/demo/demo.ipynb).
+A demo and tutorial can be found [here](https://github.com/markolenik/PyXPP/blob/master/wiki/demo/demo.ipynb).
 
 ### TODO
 - Convert functions to actual Python lambda expressions.
