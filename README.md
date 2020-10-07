@@ -35,7 +35,7 @@ And as BibTeX:
 @Misc{pyxpp,
   author       = {Mark Olenik},
   title        = {Py{XPP}},
-  howpublished = {https://gitlab.com/markolenik/PyXPP},
+  howpublished = {https://github.com/markolenik/PyXPP},
   year         = {2018--2020}
 }
 ```
