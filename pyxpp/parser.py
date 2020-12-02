@@ -385,4 +385,5 @@ def p_error(p):
         print("SYNTAX ERROR AT EOF")
 
 
-parser = yacc.yacc()
+# Write tables into current directory.
+parser = yacc.yacc(outputdir='.')
