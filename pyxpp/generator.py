@@ -43,19 +43,19 @@ def g_program(syntax):
 def g_command(cmd):
     """ Generate a command. """
     uid = cmd[0]
-    if uid is 'PAR':
+    if uid == 'PAR':
         return g_command_par(cmd)
-    elif uid is 'INIT':
+    elif uid == 'INIT':
         return g_command_init(cmd)
-    elif uid is 'AUX':
+    elif uid == 'AUX':
         return g_command_aux(cmd)
-    elif uid is 'OPT':
+    elif uid == 'OPT':
         return g_command_opt(cmd)
-    elif uid is 'GLOBAL':
+    elif uid == 'GLOBAL':
         return g_command_global(cmd)
-    elif uid is 'DEFUN':
+    elif uid == 'DEFUN':
         return g_command_defun(cmd)
-    elif uid is 'ODE':
+    elif uid == 'ODE':
         return g_command_ode(cmd)
 
 
@@ -118,27 +118,27 @@ def g_command_ode(cmd):
 def g_expr(expr):
     """ Generate an expression. """
     uid = expr[0]
-    if uid is 'RELOP':
+    if uid == 'RELOP':
         return g_expr_rel(expr)
-    if uid is 'ASSIGN':
+    if uid == 'ASSIGN':
         return g_expr_assignment(expr)
-    elif uid is 'INDEX':
+    elif uid == 'INDEX':
         return g_expr_index(expr)
-    elif uid is 'UNARY':
+    elif uid == 'UNARY':
         return g_expr_unary(expr)
-    elif uid is 'GROUP':
+    elif uid == 'GROUP':
         return g_expr_group(expr)
-    elif uid is 'VAR':
+    elif uid == 'VAR':
         return g_expr_variable(expr)
-    elif uid is 'FUNCALL':
+    elif uid == 'FUNCALL':
         return g_expr_funcall(expr)
-    elif uid is 'NUM':
+    elif uid == 'NUM':
         return g_expr_num(expr)
-    elif uid is 'BINOP':
+    elif uid == 'BINOP':
         return g_expr_binary(expr)
-    elif uid is 'SUM':
+    elif uid == 'SUM':
         return g_expr_sum(expr)
-    elif uid is 'IF':
+    elif uid == 'IF':
         return g_expr_if(expr)
 
 
