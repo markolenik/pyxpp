@@ -22,7 +22,7 @@ import copy
 import ply.yacc as yacc
 
 # Get the token map from the lexer.  This is required.
-from pyxpp.lexer import tokens
+from .lexer import tokens  # noqa: F401
 
 
 precedence = (  # Operator precedence.
@@ -191,14 +191,16 @@ def p_command_ode_array(p):
             return tuple((subst(x, var, idx) for x in expr))
 
     statevar = p[1][0]
-    p[0] = [("ODE", statevar + str(x), subst(p[4], statevar, x)) for x in p[1][1]]
+    p[0] = [("ODE", statevar + str(x), subst(p[4], statevar, x))
+            for x in p[1][1]]
 
 
 # Expressions.
 
 
 def p_expr_if(p):
-    """ expr : IF LPAREN relexpr RPAREN THEN LPAREN expr RPAREN ELSE LPAREN expr RPAREN """
+    """ expr : IF LPAREN relexpr RPAREN THEN LPAREN
+    expr RPAREN ELSE LPAREN expr RPAREN """
     p[0] = ("IF", p[3], p[7], p[11])
 
 
@@ -299,8 +301,8 @@ def p_assignment(p):
 # An array such as x[1..10].
 def p_array(p):
     """ array : ID ARRAYSLICE """
-    x0 = int(p[2][1 : p[2].index(".")])
-    x1 = int(p[2][p[2].rindex(".") + 1 : -1])
+    x0 = int(p[2][1: p[2].index(".")])
+    x1 = int(p[2][p[2].rindex(".") + 1: -1])
     p[0] = (p[1], list(range(x0, x1 + 1)))
 
 

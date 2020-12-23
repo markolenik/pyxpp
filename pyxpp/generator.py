@@ -21,12 +21,12 @@
 def g_program(syntax):
     """
     Read full syntax tree and return generated commands.
-    
+
     Parameters
     ----------
     syntax : list
         Abstract Syntax Tree generated from parser.
-    
+
     Returns
     -------
     out : list

@@ -95,7 +95,7 @@ def t_COMMENT(t):
 # table, bdry, volt, markov, wiener, solv, special, set,
 # derived parameters, numbers, int, block pseudo-arrays.
 def t_NOTUSED(t):
-    r"(?m)^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*"
+    r"(?m)^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*"  # noqa: E501
     pass
 
 
