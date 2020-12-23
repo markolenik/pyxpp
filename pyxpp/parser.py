@@ -20,7 +20,9 @@
 
 import copy
 import ply.yacc as yacc
-from .lexer import tokens
+
+# Get the token map from the lexer.  This is required.
+from pyxpp.lexer import tokens
 
 
 precedence = (  # Operator precedence.

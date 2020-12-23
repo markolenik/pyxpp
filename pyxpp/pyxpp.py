@@ -25,8 +25,8 @@ import re
 
 import numpy as np
 
-from . import parser
-from . import generator
+from pyxpp import parser
+from pyxpp import generator
 
 
 def parse_file(xppfile):
@@ -429,7 +429,8 @@ def run(xppfile, ics=None, outfile="output.dat", icfile="ics.dat",
 
     out = subprocess.PIPE
     # Run command and read result.
-    res = subprocess.run(command, stdout=out, stderr=out, shell=True)
+    res = subprocess.run(command, stdout=out, stderr=out, shell=True,
+                         check=True)
     if res.returncode != 0:
         return out.stderr
 
