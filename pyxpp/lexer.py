@@ -18,77 +18,76 @@
 # Author: Mark Olenik, mark.olenik@gmail.com
 
 
-
 import ply.lex
 
 
 tokens = [
-    'APOSTROPHE',
-    'ARRAYSLICE',
-    'AUX',
-    'DIVIDE',
-    'COMMA',
-    'ELSE', 
-    'EQUALS',
-    'FLOAT',
-    'GE',
-    'GLOBAL',
-    'GT',
-    'ID',
-    'IF',
-    'INIT', 
-    'INTEGER',
-    'LBRACE', 
-    'LBRACKET',
-    'LE',
-    'LPAREN',
-    'LT',
-    'MINUS', 
-    'NE',
-    'NEWLINE',
-    'OF',
-    'OPT',
-    'PAR',
-    'POWER',
-    'PLUS',
-    'RBRACE',
-    'RBRACKET',
-    'RPAREN',  
-    'SEMI', 
-    'SUM', 
-    'THEN', 
-    'TIMES',  
+    "APOSTROPHE",
+    "ARRAYSLICE",
+    "AUX",
+    "DIVIDE",
+    "COMMA",
+    "ELSE",
+    "EQUALS",
+    "FLOAT",
+    "GE",
+    "GLOBAL",
+    "GT",
+    "ID",
+    "IF",
+    "INIT",
+    "INTEGER",
+    "LBRACE",
+    "LBRACKET",
+    "LE",
+    "LPAREN",
+    "LT",
+    "MINUS",
+    "NE",
+    "NEWLINE",
+    "OF",
+    "OPT",
+    "PAR",
+    "POWER",
+    "PLUS",
+    "RBRACE",
+    "RBRACKET",
+    "RPAREN",
+    "SEMI",
+    "SUM",
+    "THEN",
+    "TIMES",
 ]
 
 # We ignore whitespace.
-t_ignore = ' \t'
+t_ignore = " \t"
 
 # Simple token definitions.
-t_EQUALS = r'='
-t_PLUS = r'\+'
-t_MINUS = r'-'
-t_TIMES = r'\*'
-t_POWER = r'(\^|\*\*)'
-t_DIVIDE = r'/'
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_LBRACE = r'\{'
-t_RBRACE = r'\}'
-t_LBRACKET = r'\['
-t_RBRACKET = r'\]'
-t_LT = r'<'
-t_LE = r'<='
-t_GT = r'>'
-t_GE = r'>='
-t_NE = r'<>'
-t_COMMA = r'\,'
-t_SEMI = r';'
-t_APOSTROPHE = r'\''
+t_EQUALS = r"="
+t_PLUS = r"\+"
+t_MINUS = r"-"
+t_TIMES = r"\*"
+t_POWER = r"(\^|\*\*)"
+t_DIVIDE = r"/"
+t_LPAREN = r"\("
+t_RPAREN = r"\)"
+t_LBRACE = r"\{"
+t_RBRACE = r"\}"
+t_LBRACKET = r"\["
+t_RBRACKET = r"\]"
+t_LT = r"<"
+t_LE = r"<="
+t_GT = r">"
+t_GE = r">="
+t_NE = r"<>"
+t_COMMA = r"\,"
+t_SEMI = r";"
+t_APOSTROPHE = r"\'"
 
 
 # Ignore comments and "active comments".
 def t_COMMENT(t):
-    r'(?m)^(\#|\").*'
+    r"(?m)^(\#|\").*"
     pass
 
 
@@ -96,94 +95,95 @@ def t_COMMENT(t):
 # table, bdry, volt, markov, wiener, solv, special, set,
 # derived parameters, numbers, int, block pseudo-arrays.
 def t_NOTUSED(t):
-    r'(?m)^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*'
+    r"(?m)^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*"
     pass
 
 
 # Token definitions for keywords etc.
 
+
 def t_OF(t):
-    r'of'
+    r"of"
     return t
 
 
 def t_ARRAYSLICE(t):
-    r'\[\d+\s*\.\.\s*\d+\]'
+    r"\[\d+\s*\.\.\s*\d+\]"
     return t
 
 
 def t_IF(t):
-    r'if'
+    r"if"
     return t
 
 
 def t_THEN(t):
-    r'then'
+    r"then"
     return t
 
 
 def t_ELSE(t):
-    r'else'
+    r"else"
     return t
 
 
 def t_INIT(t):
-    r'(?m)^init'
+    r"(?m)^init"
     return t
 
 
 def t_PAR(t):
-    r'(?m)^p\w*'
+    r"(?m)^p\w*"
     return t
 
 
 def t_AUX(t):
-    r'(?m)^aux'
+    r"(?m)^aux"
     return t
 
 
 def t_OPT(t):
-    r'(?m)^\@'
+    r"(?m)^\@"
     return t
 
 
 def t_GLOBAL(t):
-    r'global'
+    r"global"
     return t
 
 
 def t_SUM(t):
-    r'sum'
+    r"sum"
     return t
 
 
 def t_DONE(t):
-    r'done'
+    r"done"
     pass
 
 
 # General identifier for variables.
 def t_ID(t):
-    r'([a-zA-Z]+\w*|\w*[a-zA-Z]+)'
+    r"([a-zA-Z]+\w*|\w*[a-zA-Z]+)"
     # Turn to lowercase since XPP is not case sensitive.
     t.value = str.lower(t.value)
     return t
 
 
 def t_NEWLINE(t):
-    r'\n'
+    r"\n"
     t.lexer.lineno += 1
     return t
 
 
 def t_FLOAT(t):
-    r'(\d+\.\d*|\d*\.\d+)'
-    t.value = float(t.value)    
+    r"(\d+\.\d*|\d*\.\d+)"
+    t.value = float(t.value)
     return t
 
 
 def t_INTEGER(t):
-    r'\d+'
+    r"\d+"
     t.value = int(t.value)
     return t
 

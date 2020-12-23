@@ -18,7 +18,6 @@
 # Author: Mark Olenik, mark.olenik@gmail.com
 
 
-
 def g_program(syntax):
     """
     Read full syntax tree and return generated commands.
@@ -35,27 +34,28 @@ def g_program(syntax):
 
     """
     cmds = [g_command(cmd) for cmd in syntax]
-    return cmds + ['done']
+    return cmds + ["done"]
 
 
 # COMMANDS.
 
+
 def g_command(cmd):
     """ Generate a command. """
     uid = cmd[0]
-    if uid == 'PAR':
+    if uid == "PAR":
         return g_command_par(cmd)
-    elif uid == 'INIT':
+    elif uid == "INIT":
         return g_command_init(cmd)
-    elif uid == 'AUX':
+    elif uid == "AUX":
         return g_command_aux(cmd)
-    elif uid == 'OPT':
+    elif uid == "OPT":
         return g_command_opt(cmd)
-    elif uid == 'GLOBAL':
+    elif uid == "GLOBAL":
         return g_command_global(cmd)
-    elif uid == 'DEFUN':
+    elif uid == "DEFUN":
         return g_command_defun(cmd)
-    elif uid == 'ODE':
+    elif uid == "ODE":
         return g_command_ode(cmd)
 
 
@@ -65,28 +65,28 @@ def g_command_par(cmd):
     assign = cmd[1]
     var = assign[1]
     rhs = g_expr(assign[2])
-    return 'par %s=%s' % (var, rhs)
-        
+    return "par %s=%s" % (var, rhs)
+
 
 def g_command_init(cmd):
     """ Generate an initial value command. """
     assign = cmd[1]
     var = assign[1]
     rhs = g_expr(assign[2])
-    return 'init %s=%s' % (var, rhs)
-        
+    return "init %s=%s" % (var, rhs)
+
 
 def g_command_aux(cmd):
     """ Generate an auxilliary variable command. """
     var = cmd[1][1]
     rhs = g_expr(cmd[1][2])
-    return 'aux %s=%s' % (var, rhs)
-        
+    return "aux %s=%s" % (var, rhs)
+
 
 def g_command_opt(cmd):
     """ Generate a numerical option command. """
     assignment = g_expr(cmd[1])
-    return '@ ' + assignment
+    return "@ " + assignment
 
 
 def g_command_global(cmd):
@@ -94,8 +94,7 @@ def g_command_global(cmd):
     sign = str(cmd[1])
     condition = g_expr(cmd[2])
     assignments = [g_expr(assignment) for assignment in cmd[3]]
-    return 'global %s %s {%s}' % \
-        (sign, condition, ';'.join(assignments))
+    return "global %s %s {%s}" % (sign, condition, ";".join(assignments))
 
 
 def g_command_defun(cmd):
@@ -103,42 +102,43 @@ def g_command_defun(cmd):
     fname = cmd[1]
     arguments = cmd[2]
     rhs = g_expr(cmd[3])
-    return '%s(%s)=%s' % (fname, ','.join(arguments), rhs)
+    return "%s(%s)=%s" % (fname, ",".join(arguments), rhs)
 
 
 def g_command_ode(cmd):
     """ Generate an ODE definition command. """
     var = cmd[1]
     rhs = g_expr(cmd[2])
-    return 'd%s/dt=%s' % (var, rhs)
+    return "d%s/dt=%s" % (var, rhs)
 
 
 # EXPRESSIONS
 
+
 def g_expr(expr):
     """ Generate an expression. """
     uid = expr[0]
-    if uid == 'RELOP':
+    if uid == "RELOP":
         return g_expr_rel(expr)
-    if uid == 'ASSIGN':
+    if uid == "ASSIGN":
         return g_expr_assignment(expr)
-    elif uid == 'INDEX':
+    elif uid == "INDEX":
         return g_expr_index(expr)
-    elif uid == 'UNARY':
+    elif uid == "UNARY":
         return g_expr_unary(expr)
-    elif uid == 'GROUP':
+    elif uid == "GROUP":
         return g_expr_group(expr)
-    elif uid == 'VAR':
+    elif uid == "VAR":
         return g_expr_variable(expr)
-    elif uid == 'FUNCALL':
+    elif uid == "FUNCALL":
         return g_expr_funcall(expr)
-    elif uid == 'NUM':
+    elif uid == "NUM":
         return g_expr_num(expr)
-    elif uid == 'BINOP':
+    elif uid == "BINOP":
         return g_expr_binary(expr)
-    elif uid == 'SUM':
+    elif uid == "SUM":
         return g_expr_sum(expr)
-    elif uid == 'IF':
+    elif uid == "IF":
         return g_expr_if(expr)
 
 
@@ -147,7 +147,7 @@ def g_expr_if(expr):
     expr1 = g_expr(expr[1])
     expr2 = g_expr(expr[2])
     expr3 = g_expr(expr[3])
-    return 'if(%s)then(%s)else(%s)' % (expr1, expr2, expr3)
+    return "if(%s)then(%s)else(%s)" % (expr1, expr2, expr3)
 
 
 def g_expr_sum(expr):
@@ -155,7 +155,7 @@ def g_expr_sum(expr):
     expr1 = g_expr(expr[1])
     expr2 = g_expr(expr[2])
     expr3 = g_expr(expr[3])
-    return 'sum(%s,%s)of(%s)' % (expr1, expr2, expr3)
+    return "sum(%s,%s)of(%s)" % (expr1, expr2, expr3)
 
 
 def g_expr_binary(expr):
@@ -186,19 +186,19 @@ def g_expr_funcall(expr):
     if len(term) == 1:
         # Recursive call on single argument.
         rterm = g_expr(term[0])
-        return '%s(%s)' % (var, rterm)
+        return "%s(%s)" % (var, rterm)
 
     # Function call with multiple arguments.
     else:
         # Recursive calls on all arguments.
         rterms = [g_expr(x) for x in term]
-        rterms_comma = ','.join(rterms)
-        return '%s(%s)' % (var, rterms_comma)
+        rterms_comma = ",".join(rterms)
+        return "%s(%s)" % (var, rterms_comma)
 
 
 def g_expr_group(expr):
     """ Generate a paranthesis-group expression. """
-    return '(%s)' % g_expr(expr[1])
+    return "(%s)" % g_expr(expr[1])
 
 
 def g_expr_unary(expr):
@@ -208,7 +208,7 @@ def g_expr_unary(expr):
 
 def g_expr_index(expr):
     """ Generate an index expression. """
-    return expr[1] + '\''
+    return expr[1] + "'"
 
 
 def g_expr_rel(expr):
@@ -223,4 +223,4 @@ def g_expr_assignment(expr):
     """ Generate an assignment expression. """
     var = expr[1]
     rhs = expr[2]
-    return '%s=%s' % (var, g_expr(rhs))
+    return "%s=%s" % (var, g_expr(rhs))
