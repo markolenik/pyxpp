@@ -44,8 +44,8 @@ def parse_file(xppfile):
         Syntax tree from XPP file.
 
     """
-    with open(xppfile, "r") as f:
-        data = f.read()
+    with open(xppfile, "r") as _xppfile:
+        data = _xppfile.read()
     syntax = parser.parser.parse(data)
     return syntax
 
@@ -64,8 +64,8 @@ def write_syntax(syntax, outfile):
     """
     gen = generator.g_program(syntax)
 
-    with open(outfile, "w") as f:
-        f.writelines([cmd + "\n" for cmd in gen])
+    with open(outfile, "w") as _outfile:
+        _outfile.writelines([cmd + "\n" for cmd in gen])
 
 
 def find_key_index(syntax, key):
@@ -110,11 +110,11 @@ def version(xppfile):
     """
     out = subprocess.PIPE
     res = subprocess.run(
-        "xppaut %s -version" % xppfile, shell=True, stdout=out, stderr=out
+        "xppaut %s -version" % xppfile, shell=True, stdout=out, stderr=out,
+        check=True
     )
     outstring = res.stdout.decode("utf-8")
-    version = float(re.search(r"(\d+\.\d*|\d*\.\d+)", outstring).group(0))
-    return version
+    return float(re.search(r"(\d+\.\d*|\d*\.\d+)", outstring).group(0))
 
 
 def dry_run(xppfile, outfile="output.dat", cleanup=True):
@@ -136,9 +136,7 @@ def dry_run(xppfile, outfile="output.dat", cleanup=True):
     out = subprocess.PIPE
     res = subprocess.run(
         "xppaut %s -qics -outfile %s " % (xppfile, outfile),
-        shell=True,
-        stdout=out,
-        stderr=out,
+        shell=True, stdout=out, stderr=out, check=True
     )
 
     if os.path.isfile(outfile) and cleanup:
@@ -179,8 +177,8 @@ def _query_info(xppfile, info, outfile="output.dat", quiet=True, cleanup=True):
 
     """
     subprocess.check_call(
-        "xppaut %s %s -outfile %s -quiet %s" % (xppfile, info, outfile, int(quiet)),
-        shell=True,
+        "xppaut %s %s -outfile %s -quiet %s" % (
+            xppfile, info, outfile, int(quiet)), shell=True,
     )
     if os.path.isfile(outfile):  # success
         _dat = np.genfromtxt(outfile, dtype=[("f0", list), ("f1", float)])
@@ -191,8 +189,7 @@ def _query_info(xppfile, info, outfile="output.dat", quiet=True, cleanup=True):
         odict = OrderedDict(dat)
         return odict
 
-    else:
-        print("Error in querying info.")
+    print("Error in querying info.")
 
 
 def read_state_vars(xppfile):
@@ -238,7 +235,7 @@ def read_aux_vars(xppfile):
     return state_vars
 
 
-def read_vars(xppfile, **kwargs):
+def read_vars(xppfile):
     """
     Read state and auxilliary variables from XPP file.
 
@@ -366,20 +363,12 @@ def _append_uid(fname, uid):
     parts = fname.split(".")
     if len(parts) > 1:  # File name with suffix.
         return parts[0] + "-" + str(uid) + "." + parts[1]
-    else:  # No suffix.
-        return parts[0] + "-" + str(uid)
+    # No suffix.
+    return parts[0] + "-" + str(uid)
 
 
-def run(
-    xppfile,
-    ics=None,
-    outfile="output.dat",
-    icfile="ics.dat",
-    parfile=None,
-    uid=None,
-    cleanup=True,
-    **kwargs,
-):
+def run(xppfile, ics=None, outfile="output.dat", icfile="ics.dat",
+        parfile=None, uid=None, cleanup=True, **kwargs):
     """
     Run XPP simulation in silent mode and return result.
 
@@ -454,18 +443,8 @@ def run(
     return outdat
 
 
-def nullclines(
-    xppfile,
-    xplot=None,
-    yplot=None,
-    xlo=None,
-    xhi=None,
-    ylo=None,
-    yhi=None,
-    cleanup=True,
-    outfile="out.ode",
-    **kwargs,
-):
+def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
+               yhi=None, cleanup=True, outfile="out.ode", **kwargs):
     """
     Compute nullclines.
 
@@ -500,7 +479,7 @@ def nullclines(
 
     """
     # Nullclines output file is hard-coded in XPP to 'nullclines.dat'.
-    NULLCLINES_FILE = "nullclines.dat"
+    nullclines_file = "nullclines.dat"
 
     # Read optional parameters.
     optstr = ""
@@ -530,15 +509,13 @@ def nullclines(
     out = subprocess.PIPE
     res = subprocess.run(
         "xppaut %s -silent -with '%s' -ncdraw 2 -noout" % (outfile, optstr),
-        stdout=out,
-        stderr=out,
-        shell=True,
+        stdout=out, stderr=out, shell=True, check=True
     )
     if res.returncode != 0:
         return out.stderr
 
     # Read nullclines from file.
-    nullc_dat = np.genfromtxt(NULLCLINES_FILE, delimiter=" ")
+    nullc_dat = np.genfromtxt(nullclines_file, delimiter=" ")
 
     # Separate the two nullclines, nullc_dat[:,2] is either 1 or 2.
     n1 = nullc_dat[nullc_dat[:, 2] == 1, :2]
@@ -552,8 +529,8 @@ def nullclines(
 
     ret = n1_sorted, n2_sorted
 
-    if cleanup and os.path.isfile(NULLCLINES_FILE):
-        os.remove(NULLCLINES_FILE)
+    if cleanup and os.path.isfile(nullclines_file):
+        os.remove(nullclines_file)
         os.remove(outfile)
 
     return ret
