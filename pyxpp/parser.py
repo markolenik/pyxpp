@@ -199,8 +199,7 @@ def p_command_ode_array(p):
 
 
 def p_expr_if(p):
-    """ expr : IF LPAREN relexpr RPAREN THEN LPAREN
-    expr RPAREN ELSE LPAREN expr RPAREN """
+    """ expr : IF LPAREN relexpr RPAREN THEN LPAREN expr RPAREN ELSE LPAREN expr RPAREN """
     p[0] = ("IF", p[3], p[7], p[11])
 
 
