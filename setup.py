@@ -6,19 +6,18 @@ with open("README.md", "r") as fh:
 dependencies = ['numpy',
                 'scipy',
                 'pandas',
-                'Shapely',
                 'ply',
                 'matplotlib']
 
 setuptools.setup(
     name="pyxpp",
-    version="0.1.0",
+    version="0.1.1",
     author="Mark Olenik",
     author_email="mark.olenik@gmail.com",
     description="An XPP Python wrapper powered by PLY",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/molenik/PyXPP",
+    url="https://github.com/markolenik/PyXPP",
     packages=setuptools.find_packages(),
     install_requires=dependencies,
     classifiers=(
