@@ -390,4 +390,5 @@ def p_error(p):
 
 
 # Write tables into current directory.
+# NOTE: Not sure if it's a good idea to write into working dir
 parser = yacc.yacc(outputdir=".")

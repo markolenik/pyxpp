@@ -29,28 +29,28 @@ from pyxpp import parser
 from pyxpp import generator
 
 
-def parse_file(xppfile):
+def parse_file(xpp_file):
     """
     Read state variables from XPP file.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
 
     Returns
     -------
-    out : list of tuples
+    syntax : list of tuples
         Syntax tree from XPP file.
 
     """
-    with open(xppfile, "r") as _xppfile:
-        data = _xppfile.read()
+    with open(xpp_file, "r") as file:
+        data = file.read()
     syntax = parser.parser.parse(data)
     return syntax
 
 
-def write_syntax(syntax, outfile):
+def write_syntax(syntax, out_file):
     """
     Generate code from syntax tree and write to file.
 
@@ -58,14 +58,14 @@ def write_syntax(syntax, outfile):
     ----------
     syntax : list
         Abstract Syntax Tree generated from parser.
-    outfile : str
+    out_file : str
         File to save the generated code to.
 
     """
-    gen = generator.g_program(syntax)
+    commands = generator.g_program(syntax)
 
-    with open(outfile, "w") as _outfile:
-        _outfile.writelines([cmd + "\n" for cmd in gen])
+    with open(out_file, "w") as file:
+        file.writelines([command + "\n" for command in commands])
 
 
 def find_key_index(syntax, key):
@@ -87,19 +87,20 @@ def find_key_index(syntax, key):
 
     """
     keytypes = ["PAR", "INIT", "AUX", "OPT"]
-    for idx, cmd in enumerate(syntax):
-        if cmd[0] in keytypes and cmd[1][1] == key:
-            return idx
-    return idx
+    index = -1
+    for index, command in enumerate(syntax):
+        if command[0] in keytypes and command[1][1] == key:
+            return index
+    return index
 
 
-def version(xppfile):
+def version(xpp_file):
     """
     Find version of installed XPP.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
 
     Returns
@@ -108,24 +109,24 @@ def version(xppfile):
         Version number.
 
     """
-    out = subprocess.PIPE
-    res = subprocess.run(
-        "xppaut %s -version" % xppfile, shell=True, stdout=out, stderr=out,
-        check=True
+    out_pipe = subprocess.PIPE
+    process = subprocess.run(
+        "xppaut %s -version" % xpp_file, shell=True,
+        stdout=out_pipe, stderr=out_pipe, check=True
     )
-    outstring = res.stdout.decode("utf-8")
-    return float(re.search(r"(\d+\.\d*|\d*\.\d+)", outstring).group(0))
+    out_string = process.stdout.decode("utf-8")
+    return float(re.search(r"(\d+\.\d*|\d*\.\d+)", out_string).group(0))
 
 
-def dry_run(xppfile, outfile="output.dat", cleanup=True):
+def dry_run(xpp_file, out_file="output.dat", cleanup=True):
     """
     Perform a dry run of XPP to check file syntax.  Print standard output.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
-    outfile : str, optional
+    out_file : str, optional
         Name of temporary file.
     quiet : bool, optional
         Print verbose log messages.
@@ -133,37 +134,38 @@ def dry_run(xppfile, outfile="output.dat", cleanup=True):
         Delete temporary file after reading.
 
     """
-    out = subprocess.PIPE
-    res = subprocess.run(
-        "xppaut %s -qics -outfile %s " % (xppfile, outfile),
-        shell=True, stdout=out, stderr=out, check=True
+    out_pipe = subprocess.PIPE
+    process = subprocess.run(
+        "xppaut %s -qics -outfile %s " % (xpp_file, out_file),
+        shell=True, stdout=out_pipe, stderr=out_pipe, check=True
     )
 
-    if os.path.isfile(outfile) and cleanup:
-        os.remove(outfile)
+    if os.path.isfile(out_file) and cleanup:
+        os.remove(out_file)
 
-    if res == 0:
-        print(res.stdout.decode("utf-8"))
+    if process == 0:
+        print(process.stdout.decode("utf-8"))
     else:
-        print(res.stderr.decode("utf-8"))
+        print(process.stderr.decode("utf-8"))
 
-    return res
+    return process
 
 
-def _query_info(xppfile, info, outfile="output.dat", quiet=True, cleanup=True):
+def _query_info(xpp_file, info, out_file="output.dat", quiet=True,
+                cleanup=True):
     """
     Query information by writing it to and from a temporary file.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
     info : str
         Type of information to read. One of:
         - qsets : Query internal sets.
         - qpars : Query parameters.
         - qics : Query ICs.
-    outfile : str, optional
+    out_file : str, optional
         Name of temporary file.
     quiet : bool, optional
         Print verbose log messages.
@@ -172,70 +174,67 @@ def _query_info(xppfile, info, outfile="output.dat", quiet=True, cleanup=True):
 
     Returns
     -------
-    out : OrderedDict
+    OrderedDict
         Information dictionary.
 
     """
     subprocess.check_call(
         "xppaut %s %s -outfile %s -quiet %s" % (
-            xppfile, info, outfile, int(quiet)), shell=True,
+            xpp_file, info, out_file, int(quiet)), shell=True,
     )
-    if os.path.isfile(outfile):  # success
-        _dat = np.genfromtxt(outfile, dtype=[("f0", list), ("f1", float)])
+    if os.path.isfile(out_file):  # success
+        _dat = np.genfromtxt(out_file, dtype=[("f0", list), ("f1", float)])
         # Convert variable names from bytes to strings.
         dat = [(str.lower(x[0].decode("utf-8")), x[1]) for x in _dat]
         if cleanup:
-            os.remove(outfile)
+            os.remove(out_file)
         odict = OrderedDict(dat)
         return odict
 
     print("Error in querying info.")
 
 
-def read_state_vars(xppfile):
+def read_state_variables(xpp_file):
     """
     Read state variables from XPP file.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
 
     Returns
     -------
-    out : array_like of str
+    array_like of str
         State variables.
 
     """
-    # Don't query state vars directly to avoid aux variables.
-    syntax = parse_file(xppfile)
-    opts = [cmd for cmd in syntax if cmd[0] == "ODE"]
-    state_vars = np.array([opt[1] for opt in opts])
-    return state_vars
+    syntax = parse_file(xpp_file)
+    state_variables = [command[1] for command
+                       in syntax if command[0] == "ODE"]
+    return state_variables
 
 
-def read_aux_vars(xppfile):
+def read_aux_variables(xpp_file):
     """
     Read auxilliary variable from XPP file.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
 
     Returns
     -------
-    out: array_like of str
+    array_like of str
         Auxilliary variables.
 
     """
-    syntax = parse_file(xppfile)
-    opts = [cmd for cmd in syntax if cmd[0] == "AUX"]
-    state_vars = np.array([opt[1][1] for opt in opts])
-    return state_vars
+    syntax = parse_file(xpp_file)
+    return [command[1][1] for command in syntax if command[0] == "AUX"]
 
 
-def read_vars(xppfile):
+def read_variables(xppfile):
     """
     Read state and auxilliary variables from XPP file.
 
@@ -246,16 +245,16 @@ def read_vars(xppfile):
 
     Returns
     -------
-    out: array_like of str
+    array_like of str
         All variables.
 
     """
-    state_vars = read_state_vars(xppfile)
-    aux_vars = read_aux_vars(xppfile)
+    state_vars = read_state_variables(xppfile)
+    aux_vars = read_aux_variables(xppfile)
     return np.concatenate((state_vars, aux_vars))
 
 
-def read_pars(xppfile):
+def read_parameters(xpp_file):
     """
     Read parameters from XPP file.
 
@@ -266,81 +265,87 @@ def read_pars(xppfile):
 
     Returns
     -------
-    out : OrderedDict
+    OrderedDict
         Parameters.
 
     """
-    syntax = parse_file(xppfile)
-    pars = [
-        (cmd[1][1], float(generator.g_expr(cmd[1][2])))
-        for cmd in syntax
-        if cmd[0] == "PAR"
+    syntax = parse_file(xpp_file)
+    parameters = [
+        (command[1][1], float(generator.g_expr(command[1][2])))
+        for command in syntax
+        if command[0] == "PAR"
     ]
-    return OrderedDict(pars)
+    return OrderedDict(parameters)
 
 
-def read_ics(xppfile):
+def read_ics(xpp_file):
     """
-    Return IC and aux vales from XPP file.
+    Return IC and aux values from XPP file.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
 
     Returns
     -------
-    out : array_like
+    array_like
         Array with IC and aux values ordered according to
         associated variables.
 
     """
-    state_vars = read_state_vars(xppfile)
-    aux_vars = read_aux_vars(xppfile)
+    variables = read_state_variables(xpp_file)
+    aux_variables = read_aux_variables(xpp_file)
 
-    syntax = parse_file(xppfile)
+    syntax = parse_file(xpp_file)
     # Get touples of ICs in form of (variable, value).
     inits = OrderedDict(
         [
-            (cmd[1][1], float(generator.g_expr(cmd[1][2])))
-            for cmd in syntax
-            if cmd[0] == "INIT"
+            (command[1][1], float(generator.g_expr(command[1][2])))
+            for command in syntax
+            if command[0] == "INIT"
         ]
     )
     # Make sure order is correct.
-    inits_ord = OrderedDict((k, inits[k]) for k in state_vars)
+    inits_ord = OrderedDict((k, inits[k]) for k in variables)
     ics = np.array(list(inits_ord.values()))
     # XPP initialises of aux at 0.
-    auxs = np.zeros(len(aux_vars))
+    auxs = np.zeros(len(aux_variables))
 
     return np.concatenate((ics, auxs))
 
 
-def read_opts(xppfile):
+def read_numeric_options(xpp_file):
     """
     Read numeric options from XPP file.
 
     Parameters
     ----------
-    xppfile : str
-        XPP file with system definition.
+    xpp_file : str
+        XPP file with system definition
 
     Returns
     -------
-    out : OrderedDict
-        Options.
+    OrderedDict
+        Options
 
     """
-    syntax = parse_file(xppfile)
-    opt_tuples = []
-    opts = [cmd for cmd in syntax if cmd[0] == "OPT"]
-    for cmd in opts:
-        opt = generator.g_expr(cmd[1][-1])
-        if opt.isdigit():
-            opt = float(opt)
-        key = cmd[1][1]
-        opt_tuples.append((key, opt))
-    return OrderedDict(opt_tuples)
+    syntax = parse_file(xpp_file)
+    options = [command for command in syntax if command[0] == "OPT"]
+    option_tuples = []
+    for option in options:
+        # TODO: This should be solved much more elegantly.
+        # Need to implement a generator-like module which returns
+        # Python objects instead.
+        option_key = option[1][1]
+        option_type = option[1][-1][0]
+        option_string = generator.g_expr(option[1][-1])
+        if option_type == 'NUM':
+            option_value = float(option_string)
+        # In case of 'VAR' type options
+        option_value = option_string
+        option_tuples.append((option_key, option_value))
+    return OrderedDict(option_tuples)
 
 
 def _append_uid(fname, uid):
@@ -350,13 +355,13 @@ def _append_uid(fname, uid):
     Parameters
     ----------
     fname : str
-        File name.
+        File name
     uid : int
-        Unique identifier to append to file.
+        Unique identifier to append to file
 
     Returns
     -------
-    out : str
+    str
         New file name with uid appended.
 
     """
@@ -367,22 +372,22 @@ def _append_uid(fname, uid):
     return parts[0] + "-" + str(uid)
 
 
-def run(xppfile, ics=None, outfile="output.dat", icfile="ics.dat",
-        parfile=None, uid=None, cleanup=True, **kwargs):
+def run(xpp_file, ics=None, out_file="output.dat", ic_file="ics.dat",
+        par_file=None, uid=None, cleanup=True, **kwargs):
     """
     Run XPP simulation in silent mode and return result.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
     ics : array_like, optional
         ICs.
-    outfile : str, optional
+    out_file : str, optional
         Name of temporary output file.
-    icfile : str, optional
+    ic_file : str, optional
         Load ICs from the named file.
-    parfile : str, optional
+    par_file : str, optional
         Load parameters from the named file.
     uid : int, optional
         Unique identifier to append to all stored files.  Useful for
@@ -395,63 +400,63 @@ def run(xppfile, ics=None, outfile="output.dat", icfile="ics.dat",
 
     Returns
     -------
-    out : ndarray
+    ndarray
         Simulation results.
 
     """
     # Read optional arguments.
-    optstr = ""
+    optional_arguments = ""
     for key, value in kwargs.items():
-        optstr += key + "=" + str(value) + ";"
+        optional_arguments += key + "=" + str(value) + ";"
     # Remove trailing semicolon.
-    optstr = optstr[:-1]
+    optional_arguments = optional_arguments[:-1]
 
     # Append unique identifier.
     if uid is not None:
-        outfile = _append_uid(outfile, uid)
-        icfile = _append_uid(icfile, uid)
+        out_file = _append_uid(out_file, uid)
+        ic_file = _append_uid(ic_file, uid)
 
     # Write initial conditions to file.
     if ics is not None:
-        np.savetxt(icfile, list(ics))
+        np.savetxt(ic_file, list(ics))
     else:
-        ics = read_ics(xppfile)
-        np.savetxt(icfile, ics)
+        ics = read_ics(xpp_file)
+        np.savetxt(ic_file, ics)
 
     # Prepare XPP command.
     command = (
-        f"xppaut {xppfile} -silent -with '{optstr}' -runnow "
-        f"-outfile {outfile} -icfile {icfile}"
+        f"xppaut {xpp_file} -silent -with '{optional_arguments}' -runnow "
+        f"-outfile {out_file} -icfile {ic_file}"
     )
 
-    if parfile is not None:
-        command += " -parfile " + parfile
+    if par_file is not None:
+        command += " -parfile " + par_file
 
-    out = subprocess.PIPE
+    out_pipe = subprocess.PIPE
     # Run command and read result.
-    res = subprocess.run(command, stdout=out, stderr=out, shell=True,
-                         check=True)
-    if res.returncode != 0:
-        return out.stderr
+    process = subprocess.run(command, stdout=out_pipe, stderr=out_pipe,
+                             shell=True, check=True)
+    if process.returncode != 0:
+        return out_pipe.stderr
 
-    outdat = np.genfromtxt(outfile, delimiter=" ")
+    outdat = np.genfromtxt(out_file, delimiter=" ")
 
     # Cleanup if necessary.
-    if cleanup and os.path.isfile(outfile) and os.path.isfile(icfile):
-        os.remove(outfile)
-        os.remove(icfile)
+    if cleanup and os.path.isfile(out_file) and os.path.isfile(ic_file):
+        os.remove(out_file)
+        os.remove(ic_file)
 
     return outdat
 
 
-def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
-               yhi=None, cleanup=True, outfile="out.ode", **kwargs):
+def nullclines(xpp_file, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
+               yhi=None, cleanup=True, out_file="out.ode", **kwargs):
     """
     Compute nullclines.
 
     Parameters
     ----------
-    xppfile : str
+    xpp_file : str
         XPP file with system definition.
     xplot : str, optional
         State variable to plot on X-axis.
@@ -467,7 +472,7 @@ def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
         Y-axis higher limit.
     cleanup : bool, optional
         Delete temporary file after reading.
-    outfile : str, optional
+    out_file : str, optional
         File name of temporary output file.
     **kwargs : keyword arguments, optional
         Allows setting additional options such as parameters or
@@ -475,63 +480,62 @@ def nullclines(xppfile, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
 
     Returns
     -------
-    out : ndarray
+    ndarray
         Nullclines.
 
     """
     # Nullclines output file is hard-coded in XPP to 'nullclines.dat'.
     nullclines_file = "nullclines.dat"
 
-    # Read optional parameters.
-    optstr = ""
+    # Read optional arguments.
+    optional_arguments = ""
     for key, value in kwargs.items():
-        optstr += key + "=" + str(value) + ";"
+        optional_arguments += key + "=" + str(value) + ";"
     # Remove trailing semicolon.
-    optstr = optstr[:-1]
+    optional_arguments = optional_arguments[:-1]
 
     # XPP computes nullclines only on the specified axis limits "xlo", "xhi",
     # and "ylo", "yhi", and for variables specifies in "xplot" and "yplot".
     # We therefore need to create a temporary XPP file and update the limits
     # accordingly if they were provided.
 
-    syntax = parse_file(xppfile)
+    syntax = parse_file(xpp_file)
     keys = ["xlo", "xhi", "ylo", "yhi", "xplot", "yplot"]
-    vals = [xlo, xhi, ylo, yhi, xplot, yplot]
-    for key, val in zip(keys, vals):
-        if val is not None:
-            key_idx = find_key_index(syntax, key)
-            cmd = "@ %s=%s\n" % (key, val)
-            syntax[key_idx] = parser.parser.parse(cmd)[0]
+    values = [xlo, xhi, ylo, yhi, xplot, yplot]
+    for key, value in zip(keys, values):
+        if value is not None:
+            key_index = find_key_index(syntax, key)
+            command = "@ %s=%s\n" % (key, value)
+            syntax[key_index] = parser.parser.parse(command)[0]
 
     # Generate temporary XPP file.
-    write_syntax(syntax, outfile)
+    write_syntax(syntax, out_file)
 
     # Run with nullcline command line option.
-    out = subprocess.PIPE
-    res = subprocess.run(
-        "xppaut %s -silent -with '%s' -ncdraw 2 -noout" % (outfile, optstr),
-        stdout=out, stderr=out, shell=True, check=True
+    out_pipe = subprocess.PIPE
+    process = subprocess.run(
+        "xppaut %s -silent -with '%s' -ncdraw 2 -noout" % (
+            out_file, optional_arguments),
+        stdout=out_pipe, stderr=out_pipe, shell=True, check=True
     )
-    if res.returncode != 0:
-        return out.stderr
+    if process.returncode != 0:
+        return out_pipe.stderr
 
     # Read nullclines from file.
-    nullc_dat = np.genfromtxt(nullclines_file, delimiter=" ")
+    nullcline_data = np.genfromtxt(nullclines_file, delimiter=" ")
 
     # Separate the two nullclines, nullc_dat[:,2] is either 1 or 2.
-    n1 = nullc_dat[nullc_dat[:, 2] == 1, :2]
-    n2 = nullc_dat[nullc_dat[:, 2] == 2, :2]
+    nullcline1 = nullcline_data[nullcline_data[:, 2] == 1, :2]
+    nullcline2 = nullcline_data[nullcline_data[:, 2] == 2, :2]
 
     # Sort data along first variable for easier plotting.
-    idx1 = np.argsort(n1[:, 0])
-    idx2 = np.argsort(n2[:, 0])
-    n1_sorted = n1[idx1, :2]
-    n2_sorted = n2[idx2, :2]
-
-    ret = n1_sorted, n2_sorted
+    indices1 = np.argsort(nullcline1[:, 0])
+    indices2 = np.argsort(nullcline2[:, 0])
+    nullcline1_sorted = nullcline1[indices1, :2]
+    nullcline2_sorted = nullcline2[indices2, :2]
 
     if cleanup and os.path.isfile(nullclines_file):
         os.remove(nullclines_file)
-        os.remove(outfile)
+        os.remove(out_file)
 
-    return ret
+    return nullcline1_sorted, nullcline2_sorted
