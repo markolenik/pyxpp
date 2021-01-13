@@ -2,7 +2,7 @@ import copy
 import ply.yacc as yacc
 
 # Get the token map from the lexer.  This is required.
-from .lexer import tokens  # noqa: F401
+from pyxpp.lexer import tokens  # noqa: F401
 
 
 precedence = (  # Operator precedence.
