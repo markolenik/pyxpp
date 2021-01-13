@@ -1,23 +1,3 @@
-# An XPP wrapper based on PLY.
-#
-# This file is part of PyXPP.
-#
-# PyXPP is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# PyXPP is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with PyXPP.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Author: Mark Olenik, mark.olenik@gmail.com
-
-
 from collections import OrderedDict
 import subprocess
 import os
@@ -35,12 +15,12 @@ def parse_file(xpp_file):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
 
     Returns
     -------
-    syntax : list of tuples
+    syntax: list of tuples
         Syntax tree from XPP file.
 
     """
@@ -56,9 +36,9 @@ def write_syntax(syntax, out_file):
 
     Parameters
     ----------
-    syntax : list
+    syntax: list
         Abstract Syntax Tree generated from parser.
-    out_file : str
+    out_file: str
         File to save the generated code to.
 
     """
@@ -74,15 +54,15 @@ def find_key_index(syntax, key):
 
     Parameters
     ----------
-    syntax : list
+    syntax: list
         Abstract Syntax Tree generated from parser.
-    key : str
+    key: str
         Key type can be of type parameter, initial condition,
         auxilliary variable, or numeric option.
 
     Returns
     -------
-    out : int
+    out: int
         Index of entry with key in syntax table.
 
     """
@@ -100,12 +80,12 @@ def version(xpp_file):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
 
     Returns
     -------
-    out : float
+    out: float
         Version number.
 
     """
@@ -124,13 +104,13 @@ def dry_run(xpp_file, out_file="output.dat", cleanup=True):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
-    out_file : str, optional
+    out_file: str, optional
         Name of temporary file.
-    quiet : bool, optional
+    quiet: bool, optional
         Print verbose log messages.
-    cleanup : bool, optional
+    cleanup: bool, optional
         Delete temporary file after reading.
 
     """
@@ -158,18 +138,18 @@ def _query_info(xpp_file, info, out_file="output.dat", quiet=True,
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
-    info : str
+    info: str
         Type of information to read. One of:
-        - qsets : Query internal sets.
-        - qpars : Query parameters.
-        - qics : Query ICs.
-    out_file : str, optional
+        - qsets: Query internal sets.
+        - qpars: Query parameters.
+        - qics: Query ICs.
+    out_file: str, optional
         Name of temporary file.
-    quiet : bool, optional
+    quiet: bool, optional
         Print verbose log messages.
-    cleanup : bool, optional
+    cleanup: bool, optional
         Delete temporary file after reading.
 
     Returns
@@ -200,7 +180,7 @@ def read_state_variables(xpp_file):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
 
     Returns
@@ -221,7 +201,7 @@ def read_aux_variables(xpp_file):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
 
     Returns
@@ -240,7 +220,7 @@ def read_variables(xppfile):
 
     Parameters
     ----------
-    xppfile : str
+    xppfile: str
         XPP file with system definition.
 
     Returns
@@ -260,7 +240,7 @@ def read_parameters(xpp_file):
 
     Parameters
     ----------
-    xppfile : str
+    xppfile: str
         XPP file with system definition.
 
     Returns
@@ -284,7 +264,7 @@ def read_ics(xpp_file):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
 
     Returns
@@ -307,7 +287,8 @@ def read_ics(xpp_file):
         ]
     )
     # Make sure order is correct.
-    inits_ord = OrderedDict((k, inits[k]) for k in variables)
+    inits_ord = OrderedDict((variable, inits[variable])
+                            for variable in variables)
     ics = np.array(list(inits_ord.values()))
     # XPP initialises of aux at 0.
     auxs = np.zeros(len(aux_variables))
@@ -321,7 +302,7 @@ def read_numeric_options(xpp_file):
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition
 
     Returns
@@ -354,9 +335,9 @@ def _append_uid(fname, uid):
 
     Parameters
     ----------
-    fname : str
+    fname: str
         File name
-    uid : int
+    uid: int
         Unique identifier to append to file
 
     Returns
@@ -379,22 +360,22 @@ def run(xpp_file, ics=None, out_file="output.dat", ic_file="ics.dat",
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
-    ics : array_like, optional
+    ics: array_like, optional
         ICs.
-    out_file : str, optional
+    out_file: str, optional
         Name of temporary output file.
-    ic_file : str, optional
+    ic_file: str, optional
         Load ICs from the named file.
-    par_file : str, optional
+    par_file: str, optional
         Load parameters from the named file.
-    uid : int, optional
+    uid: int, optional
         Unique identifier to append to all stored files.  Useful for
         parallel simulations.
-    cleanup : bool, optional
+    cleanup: bool, optional
         Delete temporary file after reading.
-    **kwargs : keyword arguments, optional
+    **kwargs: keyword arguments, optional
         Allows setting additional options such as parameters or
         numerical setttings directly.
 
@@ -456,25 +437,25 @@ def nullclines(xpp_file, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
 
     Parameters
     ----------
-    xpp_file : str
+    xpp_file: str
         XPP file with system definition.
-    xplot : str, optional
+    xplot: str, optional
         State variable to plot on X-axis.
-    yplot : str, optional
+    yplot: str, optional
         State variable to plot on y-axis.
-    xlo : float, optional
+    xlo: float, optional
         X-axis lower limit.
-    xhi : float, optional
+    xhi: float, optional
         X-axis higher limit.
-    ylo : float, optional
+    ylo: float, optional
         Y-axis lower limit.
-    yhi : float, optional
+    yhi: float, optional
         Y-axis higher limit.
-    cleanup : bool, optional
+    cleanup: bool, optional
         Delete temporary file after reading.
-    out_file : str, optional
+    out_file: str, optional
         File name of temporary output file.
-    **kwargs : keyword arguments, optional
+    **kwargs: keyword arguments, optional
         Allows setting additional options such as parameters or
         numerical setttings directly.
 
