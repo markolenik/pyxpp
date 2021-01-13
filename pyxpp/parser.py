@@ -1,23 +1,3 @@
-# An XPP parser based on PLY.
-#
-# This file is part of PyXPP.
-#
-# PyXPP is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# PyXPP is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with PyXPP.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Author: Mark Olenik, mark.olenik@gmail.com
-
-
 import copy
 import ply.yacc as yacc
 
@@ -199,7 +179,7 @@ def p_command_ode_array(p):
 
 
 def p_expr_if(p):
-    """ expr : IF LPAREN relexpr RPAREN THEN LPAREN expr RPAREN ELSE LPAREN expr RPAREN """
+    """ expr : IF LPAREN relexpr RPAREN THEN LPAREN expr RPAREN ELSE LPAREN expr RPAREN """  # noqa: E501
     p[0] = ("IF", p[3], p[7], p[11])
 
 
