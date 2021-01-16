@@ -1,0 +1,6 @@
+numpy==1.19.5
+scipy==1.5.2
+pandas==1.2.0
+ply==3.11
+matplotlib==3.3.3
+pytest==6.2.1
