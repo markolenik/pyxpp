@@ -14,11 +14,12 @@ tokens = [
     "LPAREN", "RPAREN", "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "COMMA",
     "SEMICOLON", "APOSTROPHE",
 
-    # Simple keywords: if else then of sum
-    # TODO: Should also add stuff like table, bdry, wiener etc
+    # Keywords: if else then of sum
     # TODO: Add t (time), pi etc
-    "IF", "ELSE", "THEN", "OF", "SUM", "GLOBAL",
-    # Keywords that require regex match
+    "IF", "ELSE", "THEN", "OF", "SUM", "GLOBAL", 'SIN', 'COS',
+
+    # Declarations
+    # TODO: volt, markov, wiener, number, table, bdry, solv, special
     "AUXILIARY", "INITIALIZE", "PARAMETER", "OPTION",
     'KEYWORD',  # For keywords that are not yet implmented.
 
@@ -55,7 +56,6 @@ def t_INTEGER(t):
 
 
 # Operators
-
 t_PLUS = r"\+"
 t_MINUS = r"-"
 t_DIVIDE = r"/"
@@ -86,7 +86,7 @@ def t_COMMENT(t):
     pass
 
 
-# For we also ignore the following:
+# For now we also ignore the following:
 # table, bdry, volt, markov, wiener, solv, special, set,
 # derived parameters, numbers, int, block pseudo-arrays.
 def t_NOTUSED(t):
@@ -99,7 +99,6 @@ def t_AUXILIARY(t):
     return t
 
 
-# Other keywords have to be at start of line and match a regex
 def t_INITIALIZE(t):
     r"(?m)^i\w*"
     return t
@@ -120,9 +119,6 @@ def t_GLOBAL(t):
     return t
 
 
-# TODO Include dots in identifier name definition
-
-
 # Simple keywords have to match in full and don't depend on position in line.
 simple_keywords = {
     'if': 'IF',
@@ -130,11 +126,13 @@ simple_keywords = {
     'else': 'ELSE',
     'of': 'OF',
     'sum': 'SUM',
+    'sin': 'SIN',
+    'cos': 'COS',
 }
 
 
 def t_simple_keyword(t):
-    r'if|then|else|of|sum'
+    r'if|then|else|of|sum|sin|cos'
     t.type = simple_keywords.get(t.value, 'KEYWORD')
     return t
 

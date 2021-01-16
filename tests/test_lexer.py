@@ -28,21 +28,21 @@ def test_separators():
     assert [token.type for token in tokens] == expected
 
 
-def test_simple_keywords():
-    simple_keywords = 'sum if else then of'
+def test_keywords():
+    keywords = 'sum if else then of'
     expected = ['SUM', "IF", "ELSE", "THEN", "OF"]
-    tokens = tokenize(simple_keywords)
+    tokens = tokenize(keywords)
     assert [token.type for token in tokens] == expected
 
 
-def test_keywords():
-    keywords = 'aux \np \npar \ni \ninit \n@ \nglobal'
+def test_declarations():
+    declarations = 'aux \np \npar \ni \ninit \n@ \nglobal'
     expected = [
         'AUXILIARY', 'NEWLINE', 'PARAMETER', 'NEWLINE', 'PARAMETER',
         'NEWLINE', 'INITIALIZE', 'NEWLINE', 'INITIALIZE', 'NEWLINE',
         'OPTION', 'NEWLINE', 'GLOBAL',
     ]
-    tokens = tokenize(keywords)
+    tokens = tokenize(declarations)
     assert [token.type for token in tokens] == expected
 
 
