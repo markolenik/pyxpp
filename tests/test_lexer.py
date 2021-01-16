@@ -4,8 +4,7 @@ from pyxpp.lexer import tokenize
 
 def test_literals():
     literals = '1.0 4 0 \n'
-    # expected = ['FLOAT', 'INTEGER', 'INTEGER', 'NEWLINE']
-    expected = ['INTEGER', 'INTEGER', 'INTEGER', 'NEWLINE']
+    expected = ['FLOAT', 'INTEGER', 'INTEGER', 'NEWLINE']
     tokens = tokenize(literals)
     assert [token.type for token in tokens] == expected
 
