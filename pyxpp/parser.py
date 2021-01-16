@@ -21,7 +21,7 @@ def p_program(p):
     """ program : program statement
                 | statement """
     if len(p) == 3:
-        if isinstance(p[2], list):
+        if isinstance(p[2]) == list:
             p[0] = p[1] + p[2]
 
         else:
@@ -76,7 +76,7 @@ def p_command_init(p):
     if len(p) == 3:
         p[0] = [("INIT", x) for x in p[2]]
 
-    elif (len(p) == 7) and (isinstance(p[1], str)):
+    elif (len(p) == 7) and (isinstance(p[1]) is str):
         p[0] = ("INIT", ("ASSIGN", p[1], p[6]))
 
     elif len(p) == 5:
@@ -93,7 +93,7 @@ def p_command_aux(p):
     """ command : AUX ID EQUALS expr
                 | AUX array EQUALS expr
     """
-    if isinstance(p[2], str):
+    if isinstance(p[2]) is str:
         p[0] = ("AUX", ("ASSIGN", p[2], p[4]))
 
     else:
@@ -157,7 +157,7 @@ def p_command_ode_array(p):
             New expression.
 
         """
-        if not isinstance(expr, tuple):
+        if isinstance(expr) is not tuple:
             return expr
 
         # Substitute.
@@ -371,4 +371,4 @@ def p_error(p):
 
 # Write tables into current directory.
 # NOTE: Not sure if it's a good idea to write into working dir
-parser = yacc.yacc(outputdir=".")
+parser = yacc.yacc(outputdir=".", debug=False)

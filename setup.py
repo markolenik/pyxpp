@@ -7,7 +7,8 @@ dependencies = ['numpy',
                 'scipy',
                 'pandas',
                 'ply',
-                'matplotlib']
+                'matplotlib',
+                'pytest']
 
 setuptools.setup(
     name="pyxpp",
