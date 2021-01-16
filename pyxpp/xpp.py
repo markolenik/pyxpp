@@ -5,7 +5,7 @@ import re
 
 import numpy as np
 
-from pyxpp import parser
+from pyxpp.parser import parse
 from pyxpp import generator
 
 
