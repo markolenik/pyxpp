@@ -2,7 +2,13 @@ import ply.lex
 
 # For different types of tokens, see
 # https://en.m.wikipedia.org/wiki/Lexical_analysis#Token
-tokens = [
+
+keywords = (
+    "IF", "ELSE", "THEN", "OF", "SUM", 'DONE', "GLOBAL",
+    "AUX", "INIT", "PAR", "OPTION",
+)
+
+tokens = keywords + (
     # Literals
     "FLOAT", "INTEGER", "NEWLINE",
 
@@ -12,24 +18,12 @@ tokens = [
 
     # Separators: ( ) [ ] { } , ; '
     "LPAREN", "RPAREN", "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "COMMA",
-    "SEMICOLON", "APOSTROPHE",
-
-    # Keywords: if else then of sum
-    # TODO: Add t (time), pi etc
-    "IF", "ELSE", "THEN", "OF", "SUM", "GLOBAL", 'SIN', 'COS',
-
-    # Declarations
-    # TODO: volt, markov, wiener, number, table, bdry, solv, special
-    "AUXILIARY", "INITIALIZE", "PARAMETER", "OPTION",
-    'KEYWORD',  # For keywords that are not yet implmented.
-
-    # Array slice: [1..3]
-    "ARRAYSLICE",
+    "DOT", "SEMICOLON", "APOSTROPHE",
 
     # Identifier: Variable and function names
-    'IDENTIFIER',
+    'ID',
 
-]
+)
 
 # We ignore whitespace.
 t_ignore = " \t"
@@ -44,7 +38,8 @@ def t_NEWLINE(t):
 
 
 def t_FLOAT(t):
-    r"(\d+\.\d*|\d*\.\d+)"
+    r"(\d+\.(?!\.)\d*|\d*(?!\.)\.\d+)"
+    # Regex needs to be so complex to cover array notation.
     t.value = float(t.value)
     return t
 
@@ -76,35 +71,28 @@ t_RBRACE = r"\}"
 t_LBRACKET = r"\["
 t_RBRACKET = r"\]"
 t_COMMA = r"\,"
+t_DOT = r'\.'
 t_SEMICOLON = r";"
 t_APOSTROPHE = r"\'"
 
 
-# Ignore comments and "active comments".
-def t_COMMENT(t):
-    r"(?m)^(\#|\").*"
-    pass
+def t_DONE(t):
+    # TODO: Test that done has to occur at ^, not sure about this.
+    r"(?m)^done"
+    return t
 
 
-# For now we also ignore the following:
-# table, bdry, volt, markov, wiener, solv, special, set,
-# derived parameters, numbers, int, block pseudo-arrays.
-def t_NOTUSED(t):
-    r"(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*"  # noqa: E501
-    pass
-
-
-def t_AUXILIARY(t):
+def t_AUX(t):
     r"(?m)^aux"
     return t
 
 
-def t_INITIALIZE(t):
+def t_INIT(t):
     r"(?m)^i\w*"
     return t
 
 
-def t_PARAMETER(t):
+def t_PAR(t):
     r"(?m)^p\w*"
     return t
 
@@ -119,47 +107,23 @@ def t_GLOBAL(t):
     return t
 
 
-# Simple keywords have to match in full and don't depend on position in line.
-simple_keywords = {
-    'if': 'IF',
-    'then': 'THEN',
-    'else': 'ELSE',
-    'of': 'OF',
-    'sum': 'SUM',
-    'sin': 'SIN',
-    'cos': 'COS',
-}
-
-
-def t_simple_keyword(t):
-    r'if|then|else|of|sum|sin|cos'
-    t.type = simple_keywords.get(t.value, 'KEYWORD')
-    return t
-
-
-# NOTE: XPP has an archaic naming scheme.  Crazy stuff that works:
-# _'=0  (_ is the variable name)
-# .11'=0 (.11 is the variable name)
-# 0.12fds(x)=x**2
-#
-# To simplify stuff we only allow variables that are Python conform.
-def t_IDENTIFIER(t):
+# NOTE: XPP has an archaic naming scheme, for example it includes numeric only
+# variables.  To simplify stuff we only allow variables that are Python conform.
+# This function covers both keywords and identifiers.
+def t_ID(t):
     r"[a-zA-Z\_]\w*"
     # Turn to lowercase since XPP is not case sensitive.
+    value = str.upper(t.value)
+    if value in keywords:
+        t.type = value
     t.value = str.lower(t.value)
     return t
 
 
-def t_DONE(t):
-    # TODO: Test that done has to occur at ^, not sure about this.
-    r"(?m)done"
-    pass
-
-
-# TODO: Later on we'll have to tokenize parts of the array slice separately,
-# if we want to process these expressions.
-def t_ARRAYSLICE(t):
-    r"\[\d+\s*\.\.\s*\d+\]"
+# Ignore comments and "active comments".
+def t_COMMENT(t):
+    r"(?m)^(\#|\").*"
+    t.lexer.lineno += 1
     return t
 
 

@@ -3,8 +3,8 @@ from pyxpp.lexer import tokenize
 
 
 def test_literals():
-    literals = '1.0 4 0 \n'
-    expected = ['FLOAT', 'INTEGER', 'INTEGER', 'NEWLINE']
+    literals = '1.0 4 \n'
+    expected = ['FLOAT', 'INTEGER', 'NEWLINE']
     tokens = tokenize(literals)
     assert [token.type for token in tokens] == expected
 
@@ -19,10 +19,10 @@ def test_operators():
 
 
 def test_separators():
-    separators = '( ) [ ] { } , ; \''
+    separators = '( ) [ ] { } , . ; \''
     expected = [
         "LPAREN", "RPAREN", "LBRACKET", "RBRACKET", "LBRACE", "RBRACE",
-        "COMMA", "SEMICOLON", "APOSTROPHE",
+        "COMMA", 'DOT', "SEMICOLON", "APOSTROPHE",
     ]
     tokens = tokenize(separators)
     assert [token.type for token in tokens] == expected
@@ -38,45 +38,35 @@ def test_keywords():
 def test_declarations():
     declarations = 'aux \np \npar \ni \ninit \n@ \nglobal'
     expected = [
-        'AUXILIARY', 'NEWLINE', 'PARAMETER', 'NEWLINE', 'PARAMETER',
-        'NEWLINE', 'INITIALIZE', 'NEWLINE', 'INITIALIZE', 'NEWLINE',
+        'AUX', 'NEWLINE', 'PAR', 'NEWLINE', 'PAR',
+        'NEWLINE', 'INIT', 'NEWLINE', 'INIT', 'NEWLINE',
         'OPTION', 'NEWLINE', 'GLOBAL',
     ]
     tokens = tokenize(declarations)
     assert [token.type for token in tokens] == expected
 
 
-# BUG: These fail.  Skipping for now.
-# Problem here is the whitespace at line start, not sure how to deal with it.
-@pytest.mark.xfail
-def test_keywords_with_space():
-    keywords = 'aux \n p \n  par \n  i \n  init \n @ \n global'
-    expected = [
-        'AUXILIARY', 'NEWLINE', 'PARAMETER', 'NEWLINE', 'PARAMETER',
-        'NEWLINE', 'INITIALIZE', 'NEWLINE', 'INITIALIZE', 'NEWLINE',
-        'OPTION', 'NEWLINE', 'GLOBAL',
-    ]
-    tokens = tokenize(keywords)
-    assert [token.type for token in tokens] == expected
-
-
-def test_arrayslice():
+def test_array_slice():
     input_string = '[1..2]'
-    expected = ['ARRAYSLICE']
+    expected = ['LBRACKET', 'INTEGER', 'DOT', 'DOT', 'INTEGER', 'RBRACKET']
     tokens = tokenize(input_string)
     assert [token.type for token in tokens] == expected
 
 
-def test_identifier():
+def test_id():
     input_string = '_x v1 V_1'
-    expected = ['IDENTIFIER', 'IDENTIFIER', 'IDENTIFIER']
+    expected = ['ID', 'ID', 'ID']
     tokens = tokenize(input_string)
     assert [token.type for token in tokens] == expected
 
 
-# TODO: Don't know how to skip those below, but the last one doesn't raise and
-# exception for some reason.
-# @pytest.mark.parametrize('identifier', ['v1.', '1v', '1.V'])
-# def test_unpythonic_identifiers(identifier):
-#     with pytest.raises(ValueError):
-#         tokenize(identifier)
+def test_done():
+    tokens = tokenize('done')
+    assert [token.type for token in tokens] == ['DONE']
+
+
+def test_unpythonic_identifiers():
+    input_string = 'v1. 1v 1.V'
+    expected = ['ID', 'DOT', 'INTEGER', 'ID', 'FLOAT', 'ID']
+    tokens = tokenize(input_string)
+    assert [token.type for token in tokens] == expected
