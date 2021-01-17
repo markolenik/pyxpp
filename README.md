@@ -2,8 +2,9 @@
 
 # PyXPP
 
-![Linter](https://github.com/actions/PyXPP/workflows/flake8/badge.svg)
-![Last commit](https://img.shields.io/github/last-commit/markolenik/PyXPP/master)
+![Last commit](https://img.shields.io/github/last-commit/markolenik/PyXPP/master&style=flat-square)
+![Pytest](https://img.shields.io/github/workflow/status/markolenik/pyxpp/pytest?style=flat-square)
+![Codestyle](https://img.shields.io/github/workflow/status/markolenik/pyxpp/flake8?label=codestyle&style=flat-square)
 
 </div>
 
