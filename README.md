@@ -2,6 +2,7 @@
 
 # PyXPP
 
+![Linter](https://github.com/actions/PyXPP/workflows/flake8/badge.svg)
 ![Last commit](https://img.shields.io/github/last-commit/markolenik/PyXPP/master)
 
 </div>

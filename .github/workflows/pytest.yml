@@ -1,11 +1,11 @@
 name: pytest
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
-
+  
+  pytest:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
