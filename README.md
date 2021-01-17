@@ -2,7 +2,7 @@
 
 # PyXPP
 
-[Latest commit](https://img.shields.io/github/last-commit/markolenik/PyXPP/master)
+![Last commit](https://img.shields.io/github/last-commit/markolenik/PyXPP/master)
 
 </div>
 
