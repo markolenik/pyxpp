@@ -4,8 +4,7 @@
 
 [![pytest](https://github.com/markolenik/PyXPP/workflows/pytest/badge.svg)](https://github.com/markolenik/PyXPP/actions/pytest)
 [![flake8](https://github.com/markolenik/PyXPP/workflows/flake8/badge.svg)](https://github.com/markolenik/PyXPP/actions/flake8)
-![Last commit](https://img.shields.io/github/last-commit/markolenik/pyxpp&style=plastic) ![License](https://img.shields.io/github/license/markolenik/pyxpp&style=plastic)
-
+![Last commit](https://img.shields.io/github/last-commit/markolenik/pyxpp?style=plastic) ![License](https://img.shields.io/github/license/markolenik/pyxpp?style=plastic)
 
 </div>
 
