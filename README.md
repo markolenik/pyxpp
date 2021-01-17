@@ -2,9 +2,10 @@
 
 # PyXPP
 
-![Last commit](https://img.shields.io/github/last-commit/markolenik/PyXPP/master&style=flat-square)
 ![Pytest](https://img.shields.io/github/workflow/status/markolenik/pyxpp/pytest?style=flat-square)
 ![Codestyle](https://img.shields.io/github/workflow/status/markolenik/pyxpp/flake8?label=codestyle&style=flat-square)
+![Last commit](https://img.shields.io/github/last-commit/markolenik/pyxpp?style=flat-square) ![License](https://img.shields.io/github/license/markolenik/pyxpp?style=flat-square)
+
 
 </div>
 
