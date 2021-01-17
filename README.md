@@ -6,7 +6,8 @@
 ![Codestyle](https://img.shields.io/github/workflow/status/markolenik/pyxpp/flake8?label=codestyle&style=flat-square)
 ![Last commit](https://img.shields.io/github/last-commit/markolenik/pyxpp?style=flat-square) ![License](https://img.shields.io/github/license/markolenik/pyxpp?style=flat-square)
 
-[![Build Status](https://github.com/markolenik/PyXPP/workflows/pytest/badge.svg)](https://github.com/markolenik/PyXPP/actions?query=workflow%3ACI)
+[![Build Status](https://github.com/markolenik/PyXPP/workflows/pytest/badge.svg)](https://github.com/markolenik/PyXPP/actions/pytest)
+[![Code style](https://github.com/markolenik/PyXPP/workflows/flake8/badge.svg)](https://github.com/markolenik/PyXPP/actions/flake8)
 
 </div>
 
