@@ -3,18 +3,22 @@ import ply.lex
 # For different types of tokens, see
 # https://en.m.wikipedia.org/wiki/Lexical_analysis#Token
 
+
 keywords = (
-    "IF", "ELSE", "THEN", "OF", "SUM", 'DONE', "GLOBAL",
-    "AUX", "INIT", "PAR", "OPTION",
+    'SIN', 'COS', 'TAN', 'ATAN', 'ATAN2', 'SINH', 'COSH', 'TANH', 'EXP',
+    'DELAY', 'LN', 'LOG', 'LOG10', 'T', 'PI', 'IF', 'THEN', 'ELSE', 'ASIN',
+    'ACOS', 'HEAV', 'SIGN', 'CEIL', 'FLR', 'RAN', 'ABS', 'DEL_SHFT', 'MAX',
+    'MIN', 'NORMAL', 'BESSELJ', 'BESSELY', 'ERF', 'ERFC', 'SHIFT', 'INT',
+    'SUM', 'OF', 'SUM_INDEX', 'J',
 )
 
 tokens = keywords + (
     # Literals
     "FLOAT", "INTEGER", "NEWLINE",
 
-    # Operators: + - * / ^ ** = < <= > >= <>
+    # Operators: + - * / ^ ** = < <= > >= != ==
     "PLUS", "MINUS", "TIMES", "DIVIDE", "POWER",
-    "EQUALS", "LT", "LE", "GT", "GE", "NE",
+    "EQUALS", "LT", "LE", "GT", "GE", "NE", 'EE',
 
     # Separators: ( ) [ ] { } , ; '
     "LPAREN", "RPAREN", "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "COMMA",
@@ -23,6 +27,12 @@ tokens = keywords + (
     # Identifier: Variable and function names
     'ID',
 
+    # Command keyword (can all be abbreviated by first letter)
+    'AUX', 'INIT', 'PAR', 'OPTION', 'GLOBAL',
+    'MARKOV', 'WIENER', 'TABLE', 'BNDRY', 'DONE', 'NUMBERCMD',
+    # Differentiation notation
+    'DIFF_LEIBNIZ',             # dv/dt
+    'DIFF_EULER',               # v'
 )
 
 # We ignore whitespace.
@@ -38,8 +48,9 @@ def t_NEWLINE(t):
 
 
 def t_FLOAT(t):
-    r"(\d+\.(?!\.)\d*|\d*(?!\.)\.\d+)"
-    # Regex needs to be so complex to cover array notation.
+    r"(\d+\.(?!\.)\d*|\d*(?<!\.)\.\d+)"
+    # Regex needs to be so complex to cover array notation.  Have to include
+    # negative lookahead/lookbehind.
     t.value = float(t.value)
     return t
 
@@ -61,7 +72,8 @@ t_LT = r"<"
 t_LE = r"<="
 t_GT = r">"
 t_GE = r">="
-t_NE = r"<>"
+t_NE = r"!="
+t_EE = r'=='
 
 # Separators
 t_LPAREN = r"\("
@@ -76,12 +88,14 @@ t_SEMICOLON = r";"
 t_APOSTROPHE = r"\'"
 
 
-def t_DONE(t):
-    # TODO: Test that done has to occur at ^, not sure about this.
-    r"(?m)^done"
+def t_SUM_INDEX(t):
+    r"i\'"
     return t
 
 
+# Command keywords
+# NOTE: Not sure which of the command keywords can be abbreviated by single
+# letter.  Will have to check later.
 def t_AUX(t):
     r"(?m)^aux"
     return t
@@ -104,6 +118,49 @@ def t_OPTION(t):
 
 def t_GLOBAL(t):
     r"(?m)^global"
+    return t
+
+
+def t_MARKOV(t):
+    r"(?m)^markov"
+    return t
+
+
+def t_WIENER(t):
+    r"(?m)^wiener"
+    return t
+
+
+def t_BNDRY(t):
+    r"(?m)^bndry"
+    return t
+
+
+def t_TABLE(t):
+    r"(?m)^table"
+    return t
+
+
+def t_DONE(t):
+    r"(?m)^done"
+    return t
+
+
+# Calling this NUMBER would be confusing, hece NUMBERCMD
+def t_NUMBERCMD(t):
+    r"(?m)^number"
+    return t
+
+
+# Differentiation operators
+
+def t_DIFF_LEIBNIZ(t):
+    r"(?m)^d[a-zA-Z\_]\w*\/dt"
+    return t
+
+
+def t_DIFF_EULER(t):
+    r"(?m)^[a-zA-Z\_]\w*\'"
     return t
 
 

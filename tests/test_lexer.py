@@ -1,49 +1,138 @@
 import pytest
 from pyxpp.lexer import tokenize
 
+# NOTE: Due to the unpythonic (but fast) implementation of PLY, we can't do
+# direct unit tests, and have to rely on the tokenize function.
 
-def test_literals():
-    literals = '1.0 4 \n'
-    expected = ['FLOAT', 'INTEGER', 'NEWLINE']
-    tokens = tokenize(literals)
+keyword_tests = [
+    ('sin', ['SIN']),
+    ('cos', ['COS']),
+    ('tan', ['TAN']),
+    ('atan', ['ATAN']),
+    ('atan2', ['ATAN2']),
+    ('sinh', ['SINH']),
+    ('cosh', ['COSH']),
+    ('tanh', ['TANH']),
+    ('exp', ['EXP']),
+    ('delay', ['DELAY']),
+    ('ln', ['LN']),
+    ('log', ['LOG']),
+    ('log10', ['LOG10']),
+    ('t', ['T']),
+    # The ID at start is to prevent triggering init etc.
+    ('x pi', ['ID', 'PI']),
+    ('x if then else', ['ID', 'IF', 'THEN', 'ELSE']),
+    ('asin', ['ASIN']),
+    ('acos', ['ACOS']),
+    ('heav', ['HEAV']),
+    ('sign', ['SIGN']),
+    ('ceil', ['CEIL']),
+    ('flr', ['FLR']),
+    ('ran', ['RAN']),
+    ('abs', ['ABS']),
+    ('del_shft', ['DEL_SHFT']),
+    ('x max', ['ID', 'MAX']),
+    ('x min', ['ID', 'MIN']),
+    ('normal', ['NORMAL']),
+    ('besselj', ['BESSELJ']),
+    ('bessely', ['BESSELY']),
+    ('erf', ['ERF']),
+    ('erfc', ['ERFC']),
+    ('shift', ['SHIFT']),
+    ('x int', ['ID', 'INT']),
+    ('sum', ['SUM']),
+    ('of', ['OF']),
+    ("x i'", ['ID', 'SUM_INDEX']),
+    ('j', ['J']),
+]
+
+
+@pytest.mark.parametrize('test, expected', keyword_tests)
+def test_keywords(test, expected):
+    tokens = tokenize(test)
     assert [token.type for token in tokens] == expected
 
 
-def test_operators():
-    operators = '+ - * / ^ ** = < <= > >= <>'
-    expected = ["PLUS", "MINUS", "TIMES", "DIVIDE", "POWER",
-                'POWER', "EQUALS", "LT", "LE", "GT", "GE",
-                "NE", ]
-    tokens = tokenize(operators)
-    assert [token.type for token in tokens] == expected
+literal_tests = [
+    ('1.0', 'FLOAT'),
+    ('4', 'INTEGER'),
+    ('.5', 'FLOAT'),
+    ('\n', 'NEWLINE'),
+]
 
 
-def test_separators():
-    separators = '( ) [ ] { } , . ; \''
-    expected = [
-        "LPAREN", "RPAREN", "LBRACKET", "RBRACKET", "LBRACE", "RBRACE",
-        "COMMA", 'DOT', "SEMICOLON", "APOSTROPHE",
-    ]
-    tokens = tokenize(separators)
-    assert [token.type for token in tokens] == expected
+@pytest.mark.parametrize('test, expected', literal_tests)
+def test_literals(test, expected):
+    tokens = tokenize(test)
+    assert tokens[0].type == expected
 
 
-def test_keywords():
-    keywords = 'sum if else then of'
-    expected = ['SUM', "IF", "ELSE", "THEN", "OF"]
-    tokens = tokenize(keywords)
-    assert [token.type for token in tokens] == expected
+operator_tests = [
+    ('+', 'PLUS'),
+    ('-', 'MINUS'),
+    ('*', 'TIMES'),
+    ('/', 'DIVIDE'),
+    ('^', 'POWER'),
+    ('**', 'POWER'),
+    ('=', 'EQUALS'),
+    ('<', 'LT'),
+    ('<=', 'LE'),
+    ('>', 'GT'),
+    ('>=', 'GE'),
+    ('!=', 'NE'),
+    ('==', 'EE'),
+]
 
 
-def test_declarations():
-    declarations = 'aux \np \npar \ni \ninit \n@ \nglobal'
-    expected = [
-        'AUX', 'NEWLINE', 'PAR', 'NEWLINE', 'PAR',
-        'NEWLINE', 'INIT', 'NEWLINE', 'INIT', 'NEWLINE',
-        'OPTION', 'NEWLINE', 'GLOBAL',
-    ]
-    tokens = tokenize(declarations)
-    assert [token.type for token in tokens] == expected
+@pytest.mark.parametrize('test, expected', operator_tests)
+def test_operators(test, expected):
+    tokens = tokenize(test)
+    assert tokens[0].type == expected
+
+
+separator_tests = [
+    ('(', 'LPAREN'),
+    (')', 'RPAREN'),
+    ('[', 'LBRACKET'),
+    (']', 'RBRACKET'),
+    ('{', 'LBRACE'),
+    ('}', 'RBRACE'),
+    (',', 'COMMA'),
+    ('.', 'DOT'),
+    (';', 'SEMICOLON'),
+    ("\'", 'APOSTROPHE'),
+]
+
+@pytest.mark.parametrize('test, expected', separator_tests)
+def test_separators(test, expected):
+    tokens = tokenize(test)
+    assert tokens[0].type == expected
+
+
+command_tests = [
+    ('aux', 'AUX'),
+    ('par', 'PAR'),
+    ('p', 'PAR'),
+    ('init', 'INIT'),
+    ('i', 'INIT'),
+    ('@', 'OPTION'),
+    ('global', 'GLOBAL'),
+    ('markov', 'MARKOV'),
+    ('wiener', 'WIENER'),
+    ('bndry', 'BNDRY'),
+    ('table', 'TABLE'),
+    ('done', 'DONE'),
+    ('number', 'NUMBERCMD'),
+    ('dv/dt', 'DIFF_LEIBNIZ'),
+    ('dx1/dt', 'DIFF_LEIBNIZ'),
+    ("v'", 'DIFF_EULER'),
+]
+
+
+@pytest.mark.parametrize('cmd, expected', command_tests)
+def test_commands(cmd, expected):
+    tokens = tokenize(cmd)
+    assert tokens[0].type == expected
 
 
 def test_array_slice():
@@ -53,20 +142,14 @@ def test_array_slice():
     assert [token.type for token in tokens] == expected
 
 
-def test_id():
-    input_string = '_x v1 V_1'
-    expected = ['ID', 'ID', 'ID']
-    tokens = tokenize(input_string)
-    assert [token.type for token in tokens] == expected
+id_tests = [
+    ('_x', 'ID'),
+    ('v1', 'ID'),
+    ('V_1', 'ID')
+]
 
 
-def test_done():
-    tokens = tokenize('done')
-    assert [token.type for token in tokens] == ['DONE']
-
-
-def test_unpythonic_identifiers():
-    input_string = 'v1. 1v 1.V'
-    expected = ['ID', 'DOT', 'INTEGER', 'ID', 'FLOAT', 'ID']
-    tokens = tokenize(input_string)
-    assert [token.type for token in tokens] == expected
+@pytest.mark.parametrize('test, expected', id_tests)
+def test_id(test, expected):
+    tokens = tokenize(test)
+    assert tokens[0].type == expected
