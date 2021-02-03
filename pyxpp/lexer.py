@@ -4,13 +4,16 @@ import ply.lex
 # https://en.m.wikipedia.org/wiki/Lexical_analysis#Token
 
 
-keywords = (
-    'SIN', 'COS', 'TAN', 'ATAN', 'ATAN2', 'SINH', 'COSH', 'TANH', 'EXP',
-    'DELAY', 'LN', 'LOG', 'LOG10', 'T', 'PI', 'IF', 'THEN', 'ELSE', 'ASIN',
-    'ACOS', 'HEAV', 'SIGN', 'CEIL', 'FLR', 'RAN', 'ABS', 'DEL_SHFT', 'MAX',
-    'MIN', 'NORMAL', 'BESSELJ', 'BESSELY', 'ERF', 'ERFC', 'SHIFT', 'INT',
-    'SUM', 'OF', 'SUM_INDEX', 'J',
-)
+# Don't need this for now.  Later want to implement a mapping from xpp
+# functions to python functions.
+# keywords = (
+#     'SIN', 'COS', 'TAN', 'ATAN', 'ATAN2', 'SINH', 'COSH', 'TANH', 'EXP',
+#     'DELAY', 'LN', 'LOG', 'LOG10', 'T', 'PI', 'IF', 'THEN', 'ELSE', 'ASIN',
+#     'ACOS', 'HEAV', 'SIGN', 'CEIL', 'FLR', 'RAN', 'ABS', 'DEL_SHFT', 'MAX',
+#     'MIN', 'NORMAL', 'BESSELJ', 'BESSELY', 'ERF', 'ERFC', 'SHIFT', 'INT',
+#     'SUM', 'OF', 'SUM_INDEX', 'J',
+# )
+keywords = ()
 
 tokens = keywords + (
     # Literals
@@ -180,8 +183,8 @@ def t_ID(t):
 # Ignore comments and "active comments".
 def t_COMMENT(t):
     r"(?m)^(\#|\").*"
-    t.lexer.lineno += 1
-    return t
+    # No return value, token discarded.
+    pass
 
 
 def t_error(t):
