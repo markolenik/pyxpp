@@ -6,6 +6,7 @@ import re
 import numpy as np
 
 from pyxpp.parser import parse
+from pyxpp import parser
 from pyxpp import generator
 
 
@@ -26,7 +27,7 @@ def parse_file(xpp_file):
     """
     with open(xpp_file, "r") as file:
         data = file.read()
-    syntax = parser.parser.parse(data)
+    syntax = parser.parse(data)
     return syntax
 
 

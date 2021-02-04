@@ -1,0 +1,15 @@
+
+par G=0.6
+par GL=.15,GCA=0.3,GK=0.6
+par VK=-70,VL=-50,VCA=100
+par VA=1,VB=14.5,VC=4.,VD=15.0
+par IAPP=6.0,TAUW=100
+par TAUD=1000
+par TAUS=100
+par VTHETA=0
+
+
+minf(v)=.5*(1+tanh((v-VA)/VB))
+
+
+done

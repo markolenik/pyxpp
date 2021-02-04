@@ -1,5 +1,4 @@
 import pytest
-from pyxpp import parser
 from pyxpp.parser import *
 
 
@@ -13,7 +12,7 @@ fixed_var_tests = [
      FixedVar([
          Assignment(
              Name('k'),
-             BinOp(Group(BinOp(Number(1), '+', Name('x'))), '*', Number(2)))])),
+             BinOp(BinOp(Number(1), '+', Name('x')), '*', Number(2)))])),
 ]
 
 
@@ -51,7 +50,15 @@ fun_def_tests = [
     ('f(x) = x**2',
      FunDef(Name('f'), [Name('x')], BinOp(Name('x'), '**', Number(2)))),
     ('test(x,y)=2',
-     FunDef(Name('test'), [Name('x'), Name('y')], Number(2)))
+     FunDef(Name('test'), [Name('x'), Name('y')], Number(2))),
+    ('minf(v)=.5*(1+tanh((v-VA)/VB))',
+     FunDef(Name('minf'),
+            [Name('v')],
+            BinOp(Number(.5), '*',
+                  BinOp(Number(1), '+',
+                        FunCall(Name('tanh'),
+                                [BinOp(BinOp(Name('v'), '-', Name('va')),
+                                       '/', Name('vb'))]))))),
 ]
 
 @pytest.mark.parametrize('test, expected', fun_def_tests)

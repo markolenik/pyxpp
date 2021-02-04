@@ -1,4 +1,9 @@
-def g_program(syntax):
+""" Code generator
+Generates code from parser output.
+"""
+from pyxpp import parser
+
+def generate_program(syntax):
     """
     Read full syntax tree and return generated commands.
 
@@ -13,89 +18,89 @@ def g_program(syntax):
         List of generated code commands.
 
     """
-    cmds = [g_command(cmd) for cmd in syntax]
+    cmds = [generate_command(cmd) for cmd in syntax]
     return cmds + ["done"]
 
 
 # COMMANDS.
 
 
-def g_command(cmd):
+def generate_command(cmd):
     """ Generate a command. """
     uid = cmd[0]
     if uid == "PAR":
-        return g_command_par(cmd)
+        return generate_par(cmd)
     elif uid == "INIT":
-        return g_command_init(cmd)
+        return generate_init(cmd)
     elif uid == "AUX":
-        return g_command_aux(cmd)
+        return generate_aux(cmd)
     elif uid == "OPT":
-        return g_command_opt(cmd)
+        return generate_opt(cmd)
     elif uid == "GLOBAL":
-        return g_command_global(cmd)
+        return generate_global(cmd)
     elif uid == "DEFUN":
-        return g_command_defun(cmd)
+        return generate_fun_def(cmd)
     elif uid == "ODE":
-        return g_command_ode(cmd)
+        return generate_ode(cmd)
 
 
 # Parameter definition.
-def g_command_par(cmd):
+def generate_par(cmd):
     """ Generate a parameter command. """
     assign = cmd[1]
     var = assign[1]
-    rhs = g_expr(assign[2])
+    rhs = generate_expression(assign[2])
     return "par %s=%s" % (var, rhs)
 
 
-def g_command_init(cmd):
+def generate_init(cmd):
     """ Generate an initial value command. """
     assign = cmd[1]
     var = assign[1]
-    rhs = g_expr(assign[2])
+    rhs = generate_expression(assign[2])
     return "init %s=%s" % (var, rhs)
 
 
-def g_command_aux(cmd):
+def generate_aux(cmd):
     """ Generate an auxilliary variable command. """
     var = cmd[1][1]
-    rhs = g_expr(cmd[1][2])
+    rhs = generate_expression(cmd[1][2])
     return "aux %s=%s" % (var, rhs)
 
 
-def g_command_opt(cmd):
+def generate_opt(cmd):
     """ Generate a numerical option command. """
-    assignment = g_expr(cmd[1])
+    assignment = generate_expression(cmd[1])
     return "@ " + assignment
 
 
-def g_command_global(cmd):
+def generate_global(cmd):
     """ Generate a 'global' command. """
     sign = str(cmd[1])
-    condition = g_expr(cmd[2])
-    assignments = [g_expr(assignment) for assignment in cmd[3]]
+    condition = generate_expression(cmd[2])
+    assignments = [generate_expression(assignment) for assignment in cmd[3]]
     return "global %s %s {%s}" % (sign, condition, ";".join(assignments))
 
 
-def g_command_defun(cmd):
+def generate_fun_def(cmd):
     """ Generate a function definition command. """
     fname = cmd[1]
     arguments = cmd[2]
-    rhs = g_expr(cmd[3])
+    rhs = generate_expression(cmd[3])
     return "%s(%s)=%s" % (fname, ",".join(arguments), rhs)
 
 
-def g_command_ode(cmd):
+def generate_ode(cmd):
     """ Generate an ODE definition command. """
     var = cmd[1]
-    rhs = g_expr(cmd[2])
+    rhs = generate_expression(cmd[2])
     return "d%s/dt=%s" % (var, rhs)
 
 
 # EXPRESSIONS
 
 
-def g_expr(expr):
+def generate_expression(expr):
     """ Generate an expression. """
     uid = expr[0]
     if uid == "RELOP":
@@ -105,102 +110,69 @@ def g_expr(expr):
     elif uid == "INDEX":
         return g_expr_index(expr)
     elif uid == "UNARY":
-        return g_expr_unary(expr)
+        return generate_unaryop(expr)
     elif uid == "GROUP":
-        return g_expr_group(expr)
+        return generate_group(expr)
     elif uid == "VAR":
-        return g_expr_variable(expr)
+        return generate_name(expr)
     elif uid == "FUNCALL":
-        return g_expr_funcall(expr)
+        return generate_fun_call(expr)
     elif uid == "NUM":
-        return g_expr_num(expr)
+        return generate_number(expr)
     elif uid == "BINOP":
-        return g_expr_binary(expr)
-    elif uid == "SUM":
-        return g_expr_sum(expr)
-    elif uid == "IF":
-        return g_expr_if(expr)
+        return generate_binary(expr)
 
 
-def g_expr_if(expr):
-    """ Generate an if-expression. """
-    expr1 = g_expr(expr[1])
-    expr2 = g_expr(expr[2])
-    expr3 = g_expr(expr[3])
-    return "if(%s)then(%s)else(%s)" % (expr1, expr2, expr3)
-
-
-def g_expr_sum(expr):
-    """ Generate a sum expression. """
-    expr1 = g_expr(expr[1])
-    expr2 = g_expr(expr[2])
-    expr3 = g_expr(expr[3])
-    return "sum(%s,%s)of(%s)" % (expr1, expr2, expr3)
-
-
-def g_expr_binary(expr):
+def generate_binary(expr):
     """ Generate a binary operation expression. """
     operator = expr[1]
-    expr1 = g_expr(expr[2])
-    expr2 = g_expr(expr[3])
+    expr1 = generate_expression(expr[2])
+    expr2 = generate_expression(expr[3])
     return expr1 + operator + expr2
 
 
-def g_expr_num(expr):
+def generate_number(number: parser.Number):
     """ Generate a number expression. """
-    return str(expr[1])
+    return str(number.value)
+    # return str(number[1])
 
 
-def g_expr_variable(expr):
-    """ Generate a variable expression. """
-    var = expr[1]
+def generate_name(name: parser.Name) -> str:
+    """ Generate a name string. """
+    var = name.id
     return var
 
 
-def g_expr_funcall(expr):
-    """ Generete a function call expression. """
-    var = expr[1][0]
-    term = expr[1][1]
+def generate_fun_call(fun_call: parser.FunCall) -> str:
+    """ Generete a function call string. """
 
     # Function call with one argument.
-    if len(term) == 1:
+    if len(fun_call.arguments) == 1:
         # Recursive call on single argument.
-        rterm = g_expr(term[0])
-        return "%s(%s)" % (var, rterm)
+        argument = generate_expression(fun_call.arguments[0])
+        return "%s(%s)" % (fun_call.name, argument)
 
     # Function call with multiple arguments.
     else:
         # Recursive calls on all arguments.
-        rterms = [g_expr(x) for x in term]
-        rterms_comma = ",".join(rterms)
-        return "%s(%s)" % (var, rterms_comma)
+        arguments = [generate_expression(x) for x in fun_call.arguments]
+        arguments_comma = ",".join(arguments)
+        return "%s(%s)" % (fun_call.name, arguments_comma)
 
 
-def g_expr_group(expr):
-    """ Generate a paranthesis-group expression. """
-    return "(%s)" % g_expr(expr[1])
+# Not sure how this should be done
+# def generate_group(group):
+#     """ Generate a paranthesis-group expression. """
+#     return "(%s)" % generate_expression(group[1])
 
 
-def g_expr_unary(expr):
-    """ Generate a unary minus expression. """
-    return expr[1] + g_expr(expr[2])
+def generate_unaryop(unaryop: parser.UnaryOp) -> str:
+    """ Generate a unary minus string. """
+    return unaryop.operator + generate_expression(unaryop.operand)
 
 
-def g_expr_index(expr):
-    """ Generate an index expression. """
-    return expr[1] + "'"
-
-
-def g_expr_rel(expr):
-    """ Generate a relation expression. """
-    operator = expr[1]
-    expr1 = g_expr(expr[2])
-    expr2 = g_expr(expr[3])
-    return expr1 + operator + expr2
-
-
-def g_expr_assignment(expr):
-    """ Generate an assignment expression. """
-    var = expr[1]
-    rhs = expr[2]
-    return "%s=%s" % (var, g_expr(rhs))
+def generate_assignment(assignment):
+    """ Generate an assignment string. """
+    target = assignment.target
+    value = generate_expression(assignment.value)
+    return "%s=%s" % (target, value)

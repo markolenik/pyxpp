@@ -21,11 +21,10 @@ Done = namedtuple('Done', [])
 # Expressions
 Number = namedtuple('Number', ['value'])
 Name = namedtuple("Name", ['id'])
-BinOp = namedtuple("BinOp", ["left", "op", "right"])
-UnaryOp = namedtuple("UnaryOp", ["op", "operand"])
-Compare = namedtuple('Relation', ['left', 'op', 'right'])
-Group = namedtuple('Group', ['expression'])
-FunCall = namedtuple('FunCall', ['name', 'args'])
+BinOp = namedtuple("BinOp", ["left", "operator", "right"])
+UnaryOp = namedtuple("UnaryOp", ["operator", "operand"])
+Compare = namedtuple('Relation', ['left', 'operator', 'right'])
+FunCall = namedtuple('FunCall', ['name', 'arguments'])
 
 # Other
 Assignment = namedtuple('Assignment', ['target', 'value'])
@@ -226,9 +225,10 @@ def p_compare(p):
     p[0] = Compare(p[2], p[1], p[3])
 
 
+# Stuff grouped in parens
 def p_group(p):
     """ group : LPAREN expression RPAREN """
-    p[0] = Group(p[2])
+    p[0] = p[2]
 
 
 def p_fun_call(p):

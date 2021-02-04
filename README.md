@@ -4,7 +4,6 @@
 
 [![pytest](https://github.com/markolenik/PyXPP/workflows/pytest/badge.svg)](https://github.com/markolenik/PyXPP/actions/pytest)
 [![flake8](https://github.com/markolenik/PyXPP/workflows/flake8/badge.svg)](https://github.com/markolenik/PyXPP/actions/flake8)
-![Last commit](https://img.shields.io/github/last-commit/markolenik/pyxpp?style=plastic) ![License](https://img.shields.io/github/license/markolenik/pyxpp?style=plastic)
 
 </div>
 
@@ -29,7 +28,9 @@ A demo and tutorial can be found [here](https://github.com/markolenik/PyXPP/blob
 ### TODO
 - Convert functions to actual Python lambda expressions.
 - Directional fields.
-- Add some other commands. The following commands are not yet supported but could be easily implemented: `table, bdry, volt, markov, wiener, solv, special, set, derived parameters, numbers, int, block pseudo-arrays`
+- The following commands are recognised by the lexer but not parsed yet: `table, bdry, volt, markov, wiener, solv, special, set, derived parameters, int, block pseudo-arrays, if-else`
+- Get rid of unused token warnings.
+
 
 ### How to Cite PyXPP
 
