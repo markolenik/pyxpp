@@ -130,7 +130,7 @@ global_tests = [
 
 
 @pytest.mark.parametrize('test, expected', global_tests)
-def test_option(test, expected):
+def test_global(test, expected):
     assert parse(test+'\n') == expected
 
 

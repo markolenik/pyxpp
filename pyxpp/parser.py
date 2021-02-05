@@ -13,7 +13,7 @@ Aux = namedtuple("Aux", ["assignments"])
 Init = namedtuple("Init", ["assignments"])
 Option = namedtuple("Option", ["assignments"])
 Global = namedtuple("Global", ['sign', 'condition', 'body'])
-FunDef = namedtuple("FunDef", ['name', 'names', 'assignments'])
+FunDef = namedtuple("FunDef", ['name', 'names', 'body'])
 ODE = namedtuple('ODE', ['assignment'])
 Done = namedtuple('Done', [])
 
@@ -23,6 +23,7 @@ Number = namedtuple('Number', ['value'])
 Name = namedtuple("Name", ['id'])
 BinOp = namedtuple("BinOp", ["left", "operator", "right"])
 UnaryOp = namedtuple("UnaryOp", ["operator", "operand"])
+# TODO: Add a compare test and generator
 Compare = namedtuple('Relation', ['left', 'operator', 'right'])
 FunCall = namedtuple('FunCall', ['name', 'arguments'])
 

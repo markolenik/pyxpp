@@ -1,6 +1,8 @@
 """ Code generator
 Generates code from parser output.
 """
+import typing
+
 from pyxpp import parser
 
 def generate_program(syntax):
@@ -24,70 +26,77 @@ def generate_program(syntax):
 
 # COMMANDS.
 
+def generate_command(command):
+    """ Generate an expression. """
+    if isinstance(command, parser.FixedVar):
+        return generate_fixed_var(command)
+    elif isinstance(command, parser.Par):
+        return generate_par(command)
+    elif isinstance(command, parser.Aux):
+        return generate_aux(command)
+    elif isinstance(command, parser.Init):
+        return generate_init(command)
+    elif isinstance(command, parser.Option):
+        return generate_option(command)
+    elif isinstance(command, parser.Global):
+        return generate_global(command)
+    elif isinstance(command, parser.FunDef):
+        return generate_fun_def(command)
+    elif isinstance(command, parser.ODE):
+        return generate_ode(command)
+    elif isinstance(command, parser.Done):
+        return generate_done(command)
 
-def generate_command(cmd):
-    """ Generate a command. """
-    uid = cmd[0]
-    if uid == "PAR":
-        return generate_par(cmd)
-    elif uid == "INIT":
-        return generate_init(cmd)
-    elif uid == "AUX":
-        return generate_aux(cmd)
-    elif uid == "OPT":
-        return generate_opt(cmd)
-    elif uid == "GLOBAL":
-        return generate_global(cmd)
-    elif uid == "DEFUN":
-        return generate_fun_def(cmd)
-    elif uid == "ODE":
-        return generate_ode(cmd)
+
+def generate_fixed_var(fixed_var: parser.FixedVar) -> str:
+    """ Generate a fixed variable command"""
+    assignments = generate_assignments(fixed_var.assignments)
+    return f'number {assignments}'
 
 
-# Parameter definition.
-def generate_par(cmd):
+def generate_par(par: parser.Par) -> str:
     """ Generate a parameter command. """
-    assign = cmd[1]
-    var = assign[1]
-    rhs = generate_expression(assign[2])
-    return "par %s=%s" % (var, rhs)
+    assignments = generate_assignments(par.assignments)
+    return f'par {assignments}'
 
 
-def generate_init(cmd):
+def generate_init(init: parser.Init) -> str:
     """ Generate an initial value command. """
-    assign = cmd[1]
-    var = assign[1]
-    rhs = generate_expression(assign[2])
-    return "init %s=%s" % (var, rhs)
+    assignments = generate_assignments(init.assignments)
+    return f'init {assignments}'
 
 
-def generate_aux(cmd):
+def generate_aux(aux: parser.Aux) -> str:
     """ Generate an auxilliary variable command. """
-    var = cmd[1][1]
-    rhs = generate_expression(cmd[1][2])
-    return "aux %s=%s" % (var, rhs)
+    assignments = generate_assignments(aux.assignments)
+    return f'aux {assignments}'
 
 
-def generate_opt(cmd):
+def generate_option(option: parser.Option) -> str:
     """ Generate a numerical option command. """
-    assignment = generate_expression(cmd[1])
-    return "@ " + assignment
+    assignments = generate_assignments(option.assignments)
+    return f'@ {assignments}'
 
 
-def generate_global(cmd):
-    """ Generate a 'global' command. """
-    sign = str(cmd[1])
-    condition = generate_expression(cmd[2])
-    assignments = [generate_expression(assignment) for assignment in cmd[3]]
-    return "global %s %s {%s}" % (sign, condition, ";".join(assignments))
+def generate_global(glob: parser.Global) -> str:
+    """ Generate a global command. """
+    if isinstance(glob.sign, parser.UnaryOp):
+        sign = generate_unaryop(glob.sign)
+    else:
+        sign = generate_number(glob.sign)
+    sign = generate_unaryop(glob.sign)
+    condition = generate_expression(glob.condition)
+    assignments = generate_assignments(glob.body)
+    return f'global {sign} {{{condition}}} {{{assignments}}}'
 
 
-def generate_fun_def(cmd):
+# NOTE: Continue here
+def generate_fun_def(fun_def: parser.FunDef) -> str:
     """ Generate a function definition command. """
-    fname = cmd[1]
-    arguments = cmd[2]
-    rhs = generate_expression(cmd[3])
-    return "%s(%s)=%s" % (fname, ",".join(arguments), rhs)
+    fname = generate_name(fun_def.name)
+    arguments = ','.join(generate_name(name) for name in fun_def.names)
+    body = generate_expression(fun_def.body)
+    return f'{fname}({arguments})={body}'
 
 
 def generate_ode(cmd):
@@ -100,79 +109,72 @@ def generate_ode(cmd):
 # EXPRESSIONS
 
 
-def generate_expression(expr):
+# NOTE: Can this thing be done more elegantly,
+# maybe with a different pattern?
+def generate_expression(expression) -> str:
     """ Generate an expression. """
-    uid = expr[0]
-    if uid == "RELOP":
-        return g_expr_rel(expr)
-    if uid == "ASSIGN":
-        return g_expr_assignment(expr)
-    elif uid == "INDEX":
-        return g_expr_index(expr)
-    elif uid == "UNARY":
-        return generate_unaryop(expr)
-    elif uid == "GROUP":
-        return generate_group(expr)
-    elif uid == "VAR":
-        return generate_name(expr)
-    elif uid == "FUNCALL":
-        return generate_fun_call(expr)
-    elif uid == "NUM":
-        return generate_number(expr)
-    elif uid == "BINOP":
-        return generate_binary(expr)
+    if isinstance(expression, parser.Number):
+        return generate_number(expression)
+    elif isinstance(expression, parser.Name):
+        return generate_name(expression)
+    elif isinstance(expression, parser.BinOp):
+        return generate_binop(expression)
+    elif isinstance(expression, parser.UnaryOp):
+        return generate_unaryop(expression)
+    elif isinstance(expression, parser.FunCall):
+        return generate_fun_call(expression)
+    else:
+        return 'error'
 
 
-def generate_binary(expr):
-    """ Generate a binary operation expression. """
-    operator = expr[1]
-    expr1 = generate_expression(expr[2])
-    expr2 = generate_expression(expr[3])
-    return expr1 + operator + expr2
 
-
-def generate_number(number: parser.Number):
+def generate_number(number: parser.Number) -> str:
     """ Generate a number expression. """
     return str(number.value)
-    # return str(number[1])
 
 
 def generate_name(name: parser.Name) -> str:
     """ Generate a name string. """
-    var = name.id
-    return var
+    return name.id
 
 
-def generate_fun_call(fun_call: parser.FunCall) -> str:
-    """ Generete a function call string. """
-
-    # Function call with one argument.
-    if len(fun_call.arguments) == 1:
-        # Recursive call on single argument.
-        argument = generate_expression(fun_call.arguments[0])
-        return "%s(%s)" % (fun_call.name, argument)
-
-    # Function call with multiple arguments.
-    else:
-        # Recursive calls on all arguments.
-        arguments = [generate_expression(x) for x in fun_call.arguments]
-        arguments_comma = ",".join(arguments)
-        return "%s(%s)" % (fun_call.name, arguments_comma)
-
-
-# Not sure how this should be done
-# def generate_group(group):
-#     """ Generate a paranthesis-group expression. """
-#     return "(%s)" % generate_expression(group[1])
+# TODO: Add brackets here!!!
+def generate_binop(binop: parser.BinOp):
+    """ Generate a binary operation expression. """
+    left = generate_expression(binop.left)
+    right = generate_expression(binop.right)
+    return left + binop.operator + right
 
 
 def generate_unaryop(unaryop: parser.UnaryOp) -> str:
     """ Generate a unary minus string. """
     return unaryop.operator + generate_expression(unaryop.operand)
 
+# TODO: Add compare generator
 
-def generate_assignment(assignment):
+def generate_fun_call(fun_call: parser.FunCall) -> str:
+    """ Generete a function call string. """
+
+    # # Function call with one argument.
+    # if len(fun_call.arguments) == 1:
+    #     # Recursive call on single argument.
+    #     argument = generate_expression(fun_call.arguments[0])
+    #     return "%s(%s)" % (fun_call.name, argument)
+
+    # Recursive calls on all arguments.
+    arguments = [generate_expression(x) for x in fun_call.arguments]
+    arguments_comma = ",".join(arguments)
+    return "%s(%s)" % (fun_call.name, arguments_comma)
+
+
+def generate_assignment(assignment: parser.Assignment) -> str:
     """ Generate an assignment string. """
-    target = assignment.target
+    target = generate_expression(assignment.target)
     value = generate_expression(assignment.value)
     return "%s=%s" % (target, value)
+
+
+def generate_assignments(assignments: typing.List[parser.Assignment]) -> str:
+    assignment_strings = [generate_assignment(assignment)
+                          for assignment in assignments]
+    return ','.join(assignment_strings)
