@@ -23,8 +23,14 @@ def test_generate_number(test, expected):
 
 binop_tests = [
     (BinOp(Name('x'), '*', Number(2.)), 'x*2.0'),
+    (BinOp(Name('ks'), '/', UnaryOp('-', Number(3.2))),
+     'ks/-3.2'),
+    (BinOp(FunCall(Name('f1'), [Name('x'), Name('y')]), '-', Number(1)),
+     'f1(x,y)-1'),
     (BinOp(Name('d'), '-', BinOp(Name('x'), '/', Name('s'))),
-     'd - (x/s)'),
+     'd-(x/s)'),
+    (BinOp(BinOp(Name('x'), '+', Number(42)), '**', Number(2)),
+     '(x+42)**2'),
 ]
 
 @pytest.mark.parametrize('test, expected', binop_tests)
@@ -38,14 +44,18 @@ def test_generate_unaryop():
     assert generate_unaryop(test) == expected
 
 
-funcall_tests = [
-    (FunCall('f', [Name('x')]), 'f(x)'),
-    (FunCall('tanh', [Name('x'), Name('y')]), 'tanh(x,y)'),
-    (FunCall('sin', [FunCall('f', [Name('t')]), Name('y')]),
-             'sin(f(t),y)'),
+fun_call_tests = [
+    (FunCall(Name('f'), [Name('x')]),
+     'f(x)'),
+    (FunCall(Name('tanh'), [Name('x'), Name('y')]),
+     'tanh(x,y)'),
+    (FunCall(Name('sin'), [FunCall(Name('f'), [Name('t')]), Name('y')]),
+     'sin(f(t),y)'),
+    (FunCall(Name('tanh'), [BinOp(Name('v'), '-', Name('va'))]),
+     'tanh(v-va)'),
 ]
 
-@pytest.mark.parametrize('test, expected', funcall_tests)
+@pytest.mark.parametrize('test, expected', fun_call_tests)
 def test_generate_fun_call(test, expected):
     assert generate_fun_call(test) == expected
 
@@ -58,7 +68,7 @@ def test_generate_assignment():
 
 def test_generate_assignments():
     test = [Assignment(Name('x'), Number(2.3)),
-            Assignment(Name('method'), ('stiff'))]
+            Assignment(Name('method'), Name('stiff'))]
     expected = 'x=2.3,method=stiff'
     assert generate_assignments(test) == expected
 
@@ -104,17 +114,24 @@ def test_generate_global():
     assert generate_global(test) == expected
 
 
-def test_fun_def():
-    test = FunDef(
+fun_def_tests = [
+    (FunDef(Name('f'),
+            [Name('x'), Name('y')],
+            BinOp(Name('x'), '+', Name('y'))),
+     'f(x,y)=x+y'),
+    (FunDef(
         Name('minf'),
-        [Name('v')], BinOp(Number(.5), '*',
-                           BinOp(Number(1), '+',
-                                 FunCall(Name('tanh'),
-                                         [BinOp(BinOp(Name('v'),
-                                                      '-', Name('va')),
-                                                '/', Name('vb'))])))
-    )
-    expected = 'minf(v)=.5*(1+tanh((v-VA)/VB))'
+        [Name('v')],
+        BinOp(Number(.5), '*', BinOp(Number(1), '+',
+                                     FunCall(Name('tanh'),
+                                             [BinOp(BinOp(Name('v'), '-',
+                                                          Name('va')), '/',
+                                                    Name('vb'))])))),
+     'minf(v)=0.5*(1+tanh((v-va)/vb))'),
+]
+
+@pytest.mark.parametrize('test, expected', fun_def_tests)
+def test_fun_def(test, expected):
     assert generate_fun_def(test) == expected
 
 
@@ -127,4 +144,4 @@ def test_ode():
 def test_done():
     test = Done()
     expected = 'done'
-    assert generate_done(test) == expected
+    assert generate_command(test) == expected

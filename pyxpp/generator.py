@@ -5,7 +5,7 @@ import typing
 
 from pyxpp import parser
 
-def generate_program(syntax):
+def generate_program(syntax: typing.List[parser.Command]) -> typing.List[str]:
     """
     Read full syntax tree and return generated commands.
 
@@ -21,12 +21,12 @@ def generate_program(syntax):
 
     """
     cmds = [generate_command(cmd) for cmd in syntax]
-    return cmds + ["done"]
+    return cmds
 
 
 # COMMANDS.
 
-def generate_command(command):
+def generate_command(command: parser.Command) -> str:
     """ Generate an expression. """
     if isinstance(command, parser.FixedVar):
         return generate_fixed_var(command)
@@ -45,7 +45,9 @@ def generate_command(command):
     elif isinstance(command, parser.ODE):
         return generate_ode(command)
     elif isinstance(command, parser.Done):
-        return generate_done(command)
+        return generate_done()
+    else:
+        return "error"
 
 
 def generate_fixed_var(fixed_var: parser.FixedVar) -> str:
@@ -99,11 +101,16 @@ def generate_fun_def(fun_def: parser.FunDef) -> str:
     return f'{fname}({arguments})={body}'
 
 
-def generate_ode(cmd):
+def generate_ode(ode: parser.ODE) -> str:
     """ Generate an ODE definition command. """
-    var = cmd[1]
-    rhs = generate_expression(cmd[2])
-    return "d%s/dt=%s" % (var, rhs)
+    var = generate_name(ode.assignment.left)
+    rhs = generate_expression(ode.assignment.right)
+    return "%s\'=%s" % (var, rhs)
+
+
+def generate_done() -> str:
+    """ Generate simple done command. """
+    return 'done'
 
 
 # EXPRESSIONS
@@ -138,12 +145,21 @@ def generate_name(name: parser.Name) -> str:
     return name.id
 
 
-# TODO: Add brackets here!!!
 def generate_binop(binop: parser.BinOp):
     """ Generate a binary operation expression. """
     left = generate_expression(binop.left)
     right = generate_expression(binop.right)
-    return left + binop.operator + right
+
+    # Put brackets around string when necessary.
+    if isinstance(binop.left, parser.BinOp):
+        left_full = f'({left})'
+    else:
+        left_full = left
+    if isinstance(binop.right, parser.BinOp):
+        right_full = f'({right})'
+    else:
+        right_full = right
+    return left_full + binop.operator + right_full
 
 
 def generate_unaryop(unaryop: parser.UnaryOp) -> str:
@@ -162,16 +178,17 @@ def generate_fun_call(fun_call: parser.FunCall) -> str:
     #     return "%s(%s)" % (fun_call.name, argument)
 
     # Recursive calls on all arguments.
+    fun_name = generate_name(fun_call.name)
     arguments = [generate_expression(x) for x in fun_call.arguments]
     arguments_comma = ",".join(arguments)
-    return "%s(%s)" % (fun_call.name, arguments_comma)
+    return "%s(%s)" % (fun_name, arguments_comma)
 
 
 def generate_assignment(assignment: parser.Assignment) -> str:
     """ Generate an assignment string. """
-    target = generate_expression(assignment.target)
-    value = generate_expression(assignment.value)
-    return "%s=%s" % (target, value)
+    left = generate_expression(assignment.left)
+    right = generate_expression(assignment.right)
+    return "%s=%s" % (left, right)
 
 
 def generate_assignments(assignments: typing.List[parser.Assignment]) -> str:

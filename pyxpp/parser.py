@@ -1,34 +1,80 @@
-from collections import namedtuple
+# Allow forward references for types
+from __future__ import annotations
 
-from typing import *
-import copy
+import typing
 import ply.yacc as yacc
 from pyxpp.lexer import tokens
 
 
+
 # Commands
-FixedVar = namedtuple("FixedVar", ["assignments"])
-Par = namedtuple("Par", ["assignments"])
-Aux = namedtuple("Aux", ["assignments"])
-Init = namedtuple("Init", ["assignments"])
-Option = namedtuple("Option", ["assignments"])
-Global = namedtuple("Global", ['sign', 'condition', 'body'])
-FunDef = namedtuple("FunDef", ['name', 'names', 'body'])
-ODE = namedtuple('ODE', ['assignment'])
-Done = namedtuple('Done', [])
+Command = typing.Union[FixedVar, Par, Aux, Init, Option,
+                       Global, FunDef, ODE, Done]
+
+# FixedVar = namedtuple("FixedVar", ["assignments"])
+class FixedVar(typing.NamedTuple):
+    assignments: typing.List[Assignment]
+
+class Par(typing.NamedTuple):
+    assignments: typing.List[Assignment]
+
+# NOTE: Maybe combine command classes since identical?
+class Aux(typing.NamedTuple):
+    assignments: typing.List[Assignment]
+
+class Init(typing.NamedTuple):
+    assignments: typing.List[Assignment]
+
+class Option(typing.NamedTuple):
+    assignments: typing.List[Assignment]
+
+class Global(typing.NamedTuple):
+    # TODO: Sign is in [-1, 1, 0], make that more explicit?
+    sign: int
+    condition: BinOp
+    body: typing.List[Assignment]
+
+
+class FunDef(typing.NamedTuple):
+    name: Name
+    arguments: typing.List[Name]
+    body: Expression
+
+class ODE(typing.NamedTuple):
+    assignment: Assignment
+
+# ['assignment'])
+class Done: pass
 
 
 # Expressions
-Number = namedtuple('Number', ['value'])
-Name = namedtuple("Name", ['id'])
-BinOp = namedtuple("BinOp", ["left", "operator", "right"])
-UnaryOp = namedtuple("UnaryOp", ["operator", "operand"])
-# TODO: Add a compare test and generator
-Compare = namedtuple('Relation', ['left', 'operator', 'right'])
-FunCall = namedtuple('FunCall', ['name', 'arguments'])
+Expression = typing.Union[Number, Name, BinOp, UnaryOp, FunCall]
 
-# Other
-Assignment = namedtuple('Assignment', ['target', 'value'])
+class Number(typing.NamedTuple):
+    value: typing.Union[float, int]
+
+class Name(typing.NamedTuple):
+    id: str
+
+class BinOp(typing.NamedTuple):
+    # Not sure if the type quote is correct here
+    left: Expression
+    operator: str
+    right: Expression
+
+class UnaryOp(typing.NamedTuple):
+    operator: str
+    operand: Number
+
+
+class FunCall(typing.NamedTuple):
+    name: Name
+    arguments: typing.List[Expression]
+
+class Assignment(typing.NamedTuple):
+    left: Expression
+    right: Expression
+
 
 precedence = (  # Operator precedence.
     ("left", "PLUS", "MINUS"),
@@ -168,8 +214,6 @@ def p_expression(p):
                    | name
                    | binop
                    | unaryop
-                   | compare
-                   | group
                    | fun_call
     """
     p[0] = p[1]
@@ -210,26 +254,10 @@ def p_binop(p):
 
 
 # Unary expression like -x.
+# NOTE: Might need to change that to include negation.
 def p_unaryop(p):
     """ unaryop : MINUS expression %prec UMINUS """
     p[0] = UnaryOp(p[1], p[2])
-
-
-def p_compare(p):
-    """ compare : expression LT expression
-                | expression LE expression
-                | expression GT expression
-                | expression GE expression
-                | expression NE expression
-                | expression EE expression
-    """
-    p[0] = Compare(p[2], p[1], p[3])
-
-
-# Stuff grouped in parens
-def p_group(p):
-    """ group : LPAREN expression RPAREN """
-    p[0] = p[2]
 
 
 def p_fun_call(p):
