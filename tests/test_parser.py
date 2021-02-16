@@ -125,7 +125,12 @@ global_tests = [
     ('global -1 {u-0.2} {m=0.5*m}',
      Global(UnaryOp('-', Number(1)),
             BinOp(Name('u'), '-', Number(0.2)),
-            [Assignment(Name('m'), BinOp(Number(0.5), '*', Name('m')))]))
+            [Assignment(Name('m'), BinOp(Number(0.5), '*', Name('m')))])),
+    ('global 1 {v} {y1=1;y2=3.12}',
+     Global(Number(1),
+            Name('v'),
+            [Assignment(Name('y1'), Number(1)),
+             Assignment(Name('y2'), Number(3.12))])),
 ]
 
 

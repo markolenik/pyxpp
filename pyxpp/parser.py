@@ -195,7 +195,7 @@ def p_option(p):
 # by semicolon!
 # FIXME
 def p_global(p):
-    """ global : GLOBAL global_sign LBRACE binop RBRACE LBRACE assignments RBRACE """
+    """ global : GLOBAL global_sign LBRACE expression RBRACE LBRACE assignments RBRACE """
     p[0] = Global(p[2], p[4], p[7])
 
 
@@ -304,6 +304,7 @@ def p_assignment(p):
 
 def p_assignments(p):
     """ assignments : assignments COMMA assignment
+                    | assignments SEMICOLON assignment
                     | assignment
     """
     if len(p) == 4:
