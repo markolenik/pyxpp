@@ -109,8 +109,9 @@ def test_generate_option():
 def test_generate_global():
     test = Global(UnaryOp('-', Number(1)),
             BinOp(Name('u'), '-', Number(0.2)),
-            [Assignment(Name('m'), BinOp(Number(0.5), '*', Name('m')))])
-    expected = 'global -1 {u-0.2} {m=0.5*m}'
+            [Assignment(Name('m'), BinOp(Number(0.5), '*', Name('m'))),
+             Assignment(Name('m2'), Number(0.1))])
+    expected = 'global -1 {u-0.2} {m=0.5*m;m2=0.1}'
     assert generate_global(test) == expected
 
 

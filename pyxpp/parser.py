@@ -191,9 +191,6 @@ def p_option(p):
     p[0] = Option(p[2])
 
 
-# BUG assignments are separated by comma, in global they must be separated
-# by semicolon!
-# FIXME
 def p_global(p):
     """ global : GLOBAL global_sign LBRACE expression RBRACE LBRACE assignments RBRACE """
     p[0] = Global(p[2], p[4], p[7])

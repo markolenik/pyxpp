@@ -5,6 +5,7 @@ import typing
 
 from pyxpp import parser
 
+
 def generate_program(syntax: typing.List[parser.Command]) -> typing.List[str]:
     """
     Read full syntax tree and return generated commands.
@@ -88,15 +89,14 @@ def generate_global(glob: parser.Global) -> str:
         sign = generate_number(glob.sign)
     sign = generate_unaryop(glob.sign)
     condition = generate_expression(glob.condition)
-    assignments = generate_assignments(glob.body)
+    assignments = generate_assignments(glob.body, separator=';')
     return f'global {sign} {{{condition}}} {{{assignments}}}'
 
 
-# NOTE: Continue here
 def generate_fun_def(fun_def: parser.FunDef) -> str:
     """ Generate a function definition command. """
     fname = generate_name(fun_def.name)
-    arguments = ','.join(generate_name(name) for name in fun_def.names)
+    arguments = ','.join(generate_name(name) for name in fun_def.arguments)
     body = generate_expression(fun_def.body)
     return f'{fname}({arguments})={body}'
 
@@ -134,7 +134,6 @@ def generate_expression(expression) -> str:
         return 'error'
 
 
-
 def generate_number(number: parser.Number) -> str:
     """ Generate a number expression. """
     return str(number.value)
@@ -166,16 +165,11 @@ def generate_unaryop(unaryop: parser.UnaryOp) -> str:
     """ Generate a unary minus string. """
     return unaryop.operator + generate_expression(unaryop.operand)
 
+
 # TODO: Add compare generator
 
 def generate_fun_call(fun_call: parser.FunCall) -> str:
     """ Generete a function call string. """
-
-    # # Function call with one argument.
-    # if len(fun_call.arguments) == 1:
-    #     # Recursive call on single argument.
-    #     argument = generate_expression(fun_call.arguments[0])
-    #     return "%s(%s)" % (fun_call.name, argument)
 
     # Recursive calls on all arguments.
     fun_name = generate_name(fun_call.name)
@@ -191,7 +185,8 @@ def generate_assignment(assignment: parser.Assignment) -> str:
     return "%s=%s" % (left, right)
 
 
-def generate_assignments(assignments: typing.List[parser.Assignment]) -> str:
+def generate_assignments(assignments: typing.List[parser.Assignment],
+                         separator: str = ',') -> str:
     assignment_strings = [generate_assignment(assignment)
                           for assignment in assignments]
-    return ','.join(assignment_strings)
+    return separator.join(assignment_strings)
