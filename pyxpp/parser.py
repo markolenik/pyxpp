@@ -1,4 +1,3 @@
-# Allow forward references for types
 from __future__ import annotations
 
 import typing
@@ -6,27 +5,29 @@ import ply.yacc as yacc
 from pyxpp.lexer import tokens
 
 
-
 # Commands
-Command = typing.Union[FixedVar, Par, Aux, Init, Option,
-                       Global, FunDef, ODE, Done]
 
 # FixedVar = namedtuple("FixedVar", ["assignments"])
 class FixedVar(typing.NamedTuple):
     assignments: typing.List[Assignment]
 
+
 class Par(typing.NamedTuple):
     assignments: typing.List[Assignment]
+
 
 # NOTE: Maybe combine command classes since identical?
 class Aux(typing.NamedTuple):
     assignments: typing.List[Assignment]
 
+
 class Init(typing.NamedTuple):
     assignments: typing.List[Assignment]
 
+
 class Option(typing.NamedTuple):
     assignments: typing.List[Assignment]
+
 
 class Global(typing.NamedTuple):
     # TODO: Sign is in [-1, 1, 0], make that more explicit?
@@ -40,27 +41,36 @@ class FunDef(typing.NamedTuple):
     arguments: typing.List[Name]
     body: Expression
 
+
 class ODE(typing.NamedTuple):
     assignment: Assignment
 
-# ['assignment'])
-class Done: pass
+
+class Done:
+    pass
+
+
+Command = typing.Union[FixedVar, Par, Aux, Init, Option,
+                       Global, FunDef, ODE, Done]
 
 
 # Expressions
-Expression = typing.Union[Number, Name, BinOp, UnaryOp, FunCall]
+
 
 class Number(typing.NamedTuple):
     value: typing.Union[float, int]
 
+
 class Name(typing.NamedTuple):
     id: str
+
 
 class BinOp(typing.NamedTuple):
     # Not sure if the type quote is correct here
     left: Expression
     operator: str
     right: Expression
+
 
 class UnaryOp(typing.NamedTuple):
     operator: str
@@ -71,10 +81,13 @@ class FunCall(typing.NamedTuple):
     name: Name
     arguments: typing.List[Expression]
 
+
 class Assignment(typing.NamedTuple):
     left: Expression
     right: Expression
 
+
+Expression = typing.Union[Number, Name, BinOp, UnaryOp, FunCall]
 
 precedence = (  # Operator precedence.
     ("left", "PLUS", "MINUS"),
@@ -178,6 +191,9 @@ def p_option(p):
     p[0] = Option(p[2])
 
 
+# BUG assignments are separated by comma, in global they must be separated
+# by semicolon!
+# FIXME
 def p_global(p):
     """ global : GLOBAL global_sign LBRACE binop RBRACE LBRACE assignments RBRACE """
     p[0] = Global(p[2], p[4], p[7])
@@ -208,7 +224,7 @@ def p_ode(p):
     p[0] = ODE(Assignment(Name(state_var), p[3]))
 
 
-# An expression is anything on the RHS of assignment
+# An expression is anything on the RHS of an assignment.
 def p_expression(p):
     """ expression : number
                    | name
@@ -217,6 +233,11 @@ def p_expression(p):
                    | fun_call
     """
     p[0] = p[1]
+
+
+def p_expressoin_bracketed(p):
+    """ expression : LPAREN expression RPAREN """
+    p[0] = p[2]
 
 
 def p_number(p):

@@ -31,8 +31,8 @@ tokens = keywords + (
     'ID',
 
     # Command keyword (can all be abbreviated by first letter)
-    'AUX', 'INIT', 'PAR', 'OPTION', 'GLOBAL',
-    'MARKOV', 'WIENER', 'TABLE', 'BNDRY', 'DONE', 'NUMBERCMD',
+    'AUX', 'INIT', 'PAR', 'OPTION', 'GLOBAL', 'DONE', 'NUMBERCMD',
+    'MARKOV', 'WIENER', 'BNDRY', 'TABLE',
     # Differentiation notation
     'DIFF_LEIBNIZ',             # dv/dt
     'DIFF_EULER',               # v'
@@ -197,7 +197,7 @@ def t_error(t):
 # to optimize the lexer.  Also, not sure whether a temporary file
 # is written down anywhere, and whether it should be permanent.
 # TODO: Try out building the lexer from within parser.py.
-lexer = ply.lex.lex()
+lexer = ply.lex.lex(nowarn=True)
 
 
 def tokenize(input_string, **kwargs):

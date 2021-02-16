@@ -136,8 +136,7 @@ def test_global(test, expected):
 
 def test_done():
     test = 'done'
-    expected = Done()
-    assert parse(test+'\n') == expected
+    assert isinstance(parse(test+'\n'), Done)
 
 
 fun_call_tests = [
