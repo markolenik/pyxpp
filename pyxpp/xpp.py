@@ -5,7 +5,6 @@ import re
 
 import numpy as np
 
-from pyxpp.parser import parse
 from pyxpp import parser
 from pyxpp import generator
 
@@ -43,7 +42,7 @@ def write_syntax(syntax, out_file):
         File to save the generated code to.
 
     """
-    commands = generator.g_program(syntax)
+    commands = generator.generate_program(syntax)
 
     with open(out_file, "w") as file:
         file.writelines([command + "\n" for command in commands])
@@ -99,7 +98,7 @@ def version(xpp_file):
     return float(re.search(r"(\d+\.\d*|\d*\.\d+)", out_string).group(0))
 
 
-def dry_run(xpp_file, out_file="output.dat", cleanup=True):
+def check_syntax(xpp_file, out_file="output.dat", cleanup=True):
     """
     Perform a dry run of XPP to check file syntax.  Print standard output.
 
@@ -118,18 +117,13 @@ def dry_run(xpp_file, out_file="output.dat", cleanup=True):
     out_pipe = subprocess.PIPE
     process = subprocess.run(
         "xppaut %s -qics -outfile %s " % (xpp_file, out_file),
-        shell=True, stdout=out_pipe, stderr=out_pipe, check=True
+        shell=True, stdout=out_pipe, check=True
     )
 
     if os.path.isfile(out_file) and cleanup:
         os.remove(out_file)
 
-    if process == 0:
-        print(process.stdout.decode("utf-8"))
-    else:
-        print(process.stderr.decode("utf-8"))
-
-    return process
+    stdout = process.stdout.decode("utf-8")
 
 
 def _query_info(xpp_file, info, out_file="output.dat", quiet=True,
@@ -191,8 +185,8 @@ def read_state_variables(xpp_file):
 
     """
     syntax = parse_file(xpp_file)
-    state_variables = [command[1] for command
-                       in syntax if command[0] == "ODE"]
+    state_variables = [command.assignment.left.id for command in syntax
+                       if isinstance(command, parser.ODE)]
     return state_variables
 
 
@@ -212,7 +206,9 @@ def read_aux_variables(xpp_file):
 
     """
     syntax = parse_file(xpp_file)
-    return [command[1][1] for command in syntax if command[0] == "AUX"]
+    aux_variables = [command.assignment.left.id for command in syntax
+                     if isinstance(command, parser.Aux)]
+    return aux_variables
 
 
 def read_variables(xppfile):
@@ -251,11 +247,15 @@ def read_parameters(xpp_file):
 
     """
     syntax = parse_file(xpp_file)
-    parameters = [
-        (command[1][1], float(generator.g_expr(command[1][2])))
-        for command in syntax
-        if command[0] == "PAR"
-    ]
+    parameters = []
+    for command in syntax:
+        if isinstance(command, parser.Par):
+            for par in command.assignments:
+                par_name = par.left.id
+                par_value = par.right.value
+                parameters.append((par_name, par_value))
+
+    # Have to preserve order for writing later
     return OrderedDict(parameters)
 
 
@@ -477,7 +477,7 @@ def nullclines(xpp_file, xplot=None, yplot=None, xlo=None, xhi=None, ylo=None,
     optional_arguments = optional_arguments[:-1]
 
     # XPP computes nullclines only on the specified axis limits "xlo", "xhi",
-    # and "ylo", "yhi", and for variables specifies in "xplot" and "yplot".
+    # and "ylo", "yhi", and for variables specified in "xplot" and "yplot".
     # We therefore need to create a temporary XPP file and update the limits
     # accordingly if they were provided.
 

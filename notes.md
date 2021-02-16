@@ -1,3 +1,22 @@
+Purpose of this project
+-----------------------
+The ultimate goal is to have a robust xpp wrapper that can be put on pypi, with CI/CD etc. It's functionality is supposed to include:
+- Reading of parameters, variables, auxiliarry stuff and options
+- Running of simulations, automatic handling of temporary files etc.
+- Arrays should be implemented
+- Be able to identify bits that aren't supported and just ignore them
+- Compute and plot nullclines
+
+What the project is not:
+- Will not modify xpp files or replace model definition: this shit still has to be done through .ode files. No code generation
+- A feature complete xpp parser. I won't implement many things, since I don't use them, and they probably aren't too useful for inspection anyway.
+
+Stuff that may be implemented in future and might be useful:
+- Reading of RHS of ODEs and custom function definitions
+
+Array troubles
+--------------
+
 This whole array thing is fucking up everything. Need to somehow generalise.
 
 
@@ -31,11 +50,6 @@ Array subscript
 ```
 x[1..10]’=-x[j]
 ```
-
-What's the big goal?
--------------------------
-- Store xpp file as sytnax
-- Convert xpp-syntax to python objects
 
 
 Abbreviations
