@@ -387,4 +387,4 @@ def p_error(p):
 
 
 # Write tables into current directory.
-parser = yacc.yacc(outputdir=".")
+parser = yacc.yacc(outputdir=".", debug=False, write_tables=False)

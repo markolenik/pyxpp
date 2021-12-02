@@ -193,4 +193,4 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-lexer = ply.lex.lex()
+lexer = ply.lex.lex(nowarn=True)
