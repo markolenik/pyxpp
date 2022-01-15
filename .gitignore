@@ -1,5 +1,5 @@
 parser.out
 parsetab.py
-__pycache__/*
-__pypackages__/*
+__pycache__/
+__pypackages__/
 .pdm.toml
