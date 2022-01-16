@@ -1,45 +1,28 @@
-[project]
-name = "pyxpp"
-version = "0.1.0"
-description = "An XPP Python wrapper powered by PLY"
-authors = [
-    {name = "Mark Olenik", email = "mark.olenik@gmail.com"},
-]
-dependencies = [
-    "ply>=3.11",
-    "numpy>=1.22.1",
-]
-requires-python = ">=3.8"
-license = {text = "GPL3"}
-readme = "README.md"
-
-[project.urls]
-repository = "https://github.com/markolenik/pyxpp"
-homepage = "https://github.com/markolenik/pyxpp"
-
-[project.optional-dependencies]
-
 [tool]
 
-
 [tool.black]
-line-length = 88
+line-length = 80
 
 [tool.isort]
 profile = "black"
 known_third_party = []
 
+[dependencies]
+numpy = {}
+ply = {}
 
-[tool.pdm]
+[dev-dependencies]
+black = { version = ">=21.12b0"}
+mypy = { version = ">=0.931" }
+flake8 = { version = ">=4.0.1" }
+jupyter_console = { version = "==6.4.0"}
+jupyter_client = { version = "==6.1.12" }
+matplotlib = {}
 
-[tool.pdm.dev-dependencies]
-dev = [
-    "black>=21.12b0",
-    "flake8>=4.0.1",
-    "jupyter-console==6.4.0",
-    "jupyter-client==6.1.12",
-]
 
 [build-system]
-requires = ["pdm-pep517"]
-build-backend = "pdm.pep517.api"
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
