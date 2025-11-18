@@ -38,8 +38,12 @@ class XPPTransformer(Transformer):
     # Program structure
     def program(self, items):
         """Flatten program into list of commands."""
+        from lark.lexer import Token
         result = []
         for item in items:
+            # Skip Token objects (like "done")
+            if isinstance(item, Token):
+                continue
             if isinstance(item, list):
                 result.extend(item)
             elif item is not None:
@@ -56,36 +60,42 @@ class XPPTransformer(Transformer):
 
     # Parameter commands
     def par_assign(self, items):
-        """Parameter assignments."""
-        assigns = items[0]
+        """Parameter assignments (PAR assignments)."""
+        # items[0] = PAR token, items[1] = assignments
+        assigns = items[1]
         return [("PAR", assign) for assign in assigns]
 
     def par_array(self, items):
-        """Parameter array definition."""
-        arr, num = items
+        """Parameter array definition (PAR array "=" number)."""
+        # items[0] = PAR token, items[1] = array, items[2] = number
+        arr, num = items[1], items[2]
         statevar, indices = arr
         return [("PAR", ("ASSIGN", statevar + str(x), num)) for x in indices]
 
     # Initial condition commands
     def init_assign(self, items):
-        """Init assignments."""
-        assigns = items[0]
+        """Init assignments (INIT assignments)."""
+        # items[0] = INIT token, items[1] = assignments
+        assigns = items[1]
         return [("INIT", assign) for assign in assigns]
 
     def init_indexed(self, items):
-        """Indexed init (e.g., v(0)=1.5)."""
-        var, idx, expr = items
+        """Indexed init (ID "(" INTEGER ")" "=" expr)."""
+        # items = [ID, INTEGER_as_NUM_tuple, expr] - no terminals to skip
+        var, idx_tuple, expr = items[0], items[1], items[2]
         return ("INIT", ("ASSIGN", var, expr))
 
     def init_array(self, items):
-        """Init array definition."""
-        arr, expr = items
+        """Init array definition (INIT array "=" expr)."""
+        # items[0] = INIT token, items[1] = array, items[2] = expr
+        arr, expr = items[1], items[2]
         statevar, indices = arr
         return [("INIT", ("ASSIGN", statevar + str(x), expr)) for x in indices]
 
     def init_array_indexed(self, items):
-        """Indexed array init."""
-        arr, idx, expr = items
+        """Indexed array init (array "(" INTEGER ")" "=" expr)."""
+        # items = [array, INTEGER_as_NUM_tuple, expr]
+        arr, idx_tuple, expr = items[0], items[1], items[2]
         statevar, indices = arr
         return [("INIT", ("ASSIGN", statevar + str(x), expr)) for x in indices]
 
@@ -105,31 +115,38 @@ class XPPTransformer(Transformer):
 
     # Option commands
     def opt_assign(self, items):
-        """Option assignments."""
-        assigns = items[0]
+        """Option assignments (OPT assignments)."""
+        # items[0] = OPT token, items[1] = assignments
+        assigns = items[1]
         return [("OPT", assign) for assign in assigns]
 
     # Global command
     def global_cmd(self, items):
-        """Global zero-crossing command."""
-        sign, condition, assigns = items
+        """Global zero-crossing command (GLOBAL INTEGER relexpr "{" assignments "}")."""
+        # items[0] = GLOBAL token, items[1] = INTEGER_as_NUM_tuple, items[2] = relexpr, items[3] = assignments
+        sign_tuple, condition, assigns = items[1], items[2], items[3]
+        # Extract integer value from NUM tuple
+        sign = sign_tuple[1] if isinstance(sign_tuple, tuple) else sign_tuple
         return ("GLOBAL", sign, condition, assigns)
 
     # Function definition
     def defun(self, items):
-        """Function definition."""
-        fname, args, expr = items
+        """Function definition (ID "(" idlist ")" "=" expr)."""
+        # items = [ID, idlist, expr] - no command terminal
+        fname, args, expr = items[0], items[1], items[2]
         return ("DEFUN", fname, args, expr)
 
     # ODE commands
     def ode_apostrophe(self, items):
-        """ODE with apostrophe notation (v'=...)."""
-        var, expr = items
+        """ODE with apostrophe notation (ID "'" "=" expr)."""
+        # items = [ID, expr] - apostrophe and equals are literals
+        var, expr = items[0], items[1]
         return ("ODE", var, expr)
 
     def ode_derivative(self, items):
-        """ODE with d/dt notation (dv/dt=...)."""
-        dvar, dt, expr = items
+        """ODE with d/dt notation (ID "/" ID "=" expr)."""
+        # items = [ID, ID, expr] - first ID is like "dv", second is "dt"
+        dvar, dt, expr = items[0], items[1], items[2]
         # Extract variable name from dvar (e.g., "dv" -> "v")
         var = dvar[1:] if dvar.startswith('d') else dvar
         return ("ODE", var, expr)
@@ -160,16 +177,18 @@ class XPPTransformer(Transformer):
         return items
 
     def assignment(self, items):
-        """Single assignment."""
+        """Single assignment (ID "=" expr)."""
+        # items = [ID, expr] - "=" is literal, optional "," or ";" are literals
         var = items[0]
         expr = items[1]
         return ("ASSIGN", var, expr)
 
     # Arrays
     def array(self, items):
-        """Array definition (e.g., x[1..10])."""
-        var, slice_str = items
-        # Parse slice notation
+        """Array definition (ID ARRAYSLICE)."""
+        # items = [ID, ARRAYSLICE] both after terminal handlers
+        var, slice_str = items[0], items[1]
+        # Parse slice notation [x..y]
         slice_str = str(slice_str)
         start_idx = slice_str.index('[') + 1
         end_idx = slice_str.index(']')
@@ -242,21 +261,27 @@ class XPPTransformer(Transformer):
         return ("ARRAY_SELECT", (arr, idx))
 
     def array_idx_add(self, items):
-        """Array index with addition."""
-        arr, idx, offset = items
-        num = copy.deepcopy(offset)
+        """Array index with addition (ID "[" ID "+" INTEGER "]")."""
+        # items = [ID, ID, INTEGER_as_NUM_tuple]
+        arr, idx, offset_tuple = items[0], items[1], items[2]
+        # Extract integer from NUM tuple
+        num = copy.deepcopy(offset_tuple[1] if isinstance(offset_tuple, tuple) else offset_tuple)
         return ("ARRAY_SELECT", (arr, lambda x: x + num))
 
     def array_idx_sub(self, items):
-        """Array index with subtraction."""
-        arr, idx, offset = items
-        num = copy.deepcopy(offset)
+        """Array index with subtraction (ID "[" ID "-" INTEGER "]")."""
+        # items = [ID, ID, INTEGER_as_NUM_tuple]
+        arr, idx, offset_tuple = items[0], items[1], items[2]
+        # Extract integer from NUM tuple
+        num = copy.deepcopy(offset_tuple[1] if isinstance(offset_tuple, tuple) else offset_tuple)
         return ("ARRAY_SELECT", (arr, lambda x: x - num))
 
     def array_idx_mul(self, items):
-        """Array index with multiplication."""
-        arr, idx, offset = items
-        num = copy.deepcopy(offset)
+        """Array index with multiplication (ID "[" ID "*" INTEGER "]")."""
+        # items = [ID, ID, INTEGER_as_NUM_tuple]
+        arr, idx, offset_tuple = items[0], items[1], items[2]
+        # Extract integer from NUM tuple
+        num = copy.deepcopy(offset_tuple[1] if isinstance(offset_tuple, tuple) else offset_tuple)
         return ("ARRAY_SELECT", (arr, lambda x: x * num))
 
     # Variables and literals
@@ -299,12 +324,12 @@ class XPPTransformer(Transformer):
         return str(token).lower()
 
     def INTEGER(self, token):
-        """Convert to int."""
-        return int(token)
+        """Convert to int and wrap in NUM tuple."""
+        return ("NUM", int(token))
 
     def FLOAT(self, token):
-        """Convert to float."""
-        return float(token)
+        """Convert to float and wrap in NUM tuple."""
+        return ("NUM", float(token))
 
     def ARRAYSLICE(self, token):
         """Keep array slice as string for processing."""
