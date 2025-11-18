@@ -1,0 +1,19 @@
+# Simple test ODE file
+# Single variable exponential decay
+
+par tau=10.0
+par x0=1.0
+
+dx/dt=-x/tau
+
+init x=1.0
+
+aux x_squared=x*x
+
+@ TOTAL=100
+@ DT=0.1
+@ xlo=0, xhi=100
+@ ylo=-1, yhi=2
+@ xplot=t, yplot=x
+
+done

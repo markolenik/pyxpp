@@ -1,0 +1,129 @@
+// XPP Grammar for Lark
+// Produces same AST structure as PLY parser for compatibility
+
+?start: program
+
+program: statement+ ("done" NEWLINE?)?
+
+?statement: command NEWLINE      -> stmt
+          | NEWLINE              -> blank_line
+
+?command: par_command
+        | init_command
+        | aux_command
+        | opt_command
+        | global_command
+        | defun_command
+        | ode_command
+
+// Parameter definitions
+par_command: PAR assignments                        -> par_assign
+           | PAR array "=" number                   -> par_array
+
+// Initial conditions
+init_command: INIT assignments                      -> init_assign
+            | ID "(" INTEGER ")" "=" expr           -> init_indexed
+            | INIT array "=" expr                   -> init_array
+            | array "(" INTEGER ")" "=" expr        -> init_array_indexed
+
+// Auxiliary variables
+aux_command: AUX ID "=" expr                        -> aux_var
+           | AUX array "=" expr                     -> aux_array
+
+// Numerical options
+opt_command: OPT assignments                        -> opt_assign
+
+// Global command for zero crossings
+global_command: GLOBAL INTEGER relexpr "{" assignments "}" -> global_cmd
+
+// Function definition
+defun_command: ID "(" idlist ")" "=" expr           -> defun
+
+// ODE definitions
+ode_command: ID "'" "=" expr                        -> ode_apostrophe
+           | ID "/" ID "=" expr                     -> ode_derivative
+           | array "'" "=" expr                     -> ode_array
+
+// Assignments
+assignments: assignment+
+
+assignment: ID "=" expr ","?
+          | ID "=" expr ";"?
+
+// Arrays
+array: ID ARRAYSLICE
+
+// Expression list for function calls
+exprlist: expr ("," expr)*
+
+// ID list for function definitions
+idlist: ID ("," ID)*
+
+// Expressions
+?expr: if_expr
+     | sum_expr
+     | relexpr
+     | arith_expr
+
+if_expr: "if" "(" relexpr ")" "then" "(" expr ")" "else" "(" expr ")"
+
+sum_expr: "sum" "(" expr "," expr ")" "of" "(" expr ")"
+
+?arith_expr: arith_expr "+" term      -> add
+           | arith_expr "-" term      -> sub
+           | term
+
+?term: term "*" factor                -> mul
+     | term "/" factor                -> div
+     | factor
+
+?factor: atom "^" factor              -> pow
+       | atom "**" factor             -> pow
+       | atom
+
+?atom: "-" atom                       -> neg
+     | "(" expr ")"                   -> group
+     | funcall
+     | array_select
+     | ID "'"                         -> index_var
+     | ID                             -> var
+     | number
+
+funcall: ID "(" expr ("," expr)* ")"
+
+array_select: ID "[" ID "]"                           -> array_idx
+            | ID "[" ID "+" INTEGER "]"               -> array_idx_add
+            | ID "[" ID "-" INTEGER "]"               -> array_idx_sub
+            | ID "[" ID "*" INTEGER "]"               -> array_idx_mul
+
+// Relational expressions
+relexpr: expr "<" expr                -> lt
+       | expr "<=" expr               -> le
+       | expr ">" expr                -> gt
+       | expr ">=" expr               -> ge
+       | expr "=" expr                -> eq
+       | expr "<>" expr               -> ne
+
+// Numbers
+?number: FLOAT | INTEGER
+
+// Terminals (! marks higher priority)
+PAR.2: /^p\w*/m
+INIT.2: /^init/m
+AUX.2: /^aux/m
+OPT.2: /^\@/m
+GLOBAL.2: "global"
+ARRAYSLICE.2: /\[\d+\s*\.\.\s*\d+\]/
+FLOAT.1: /(\d+\.\d*|\d*\.\d+)/
+INTEGER.1: /\d+/
+ID: /[a-zA-Z]+\w*|\w*[a-zA-Z]+/i
+
+// Comments and ignored constructs
+COMMENT: /^(\#|\").*/m
+NOTUSED: /^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*/m
+
+NEWLINE: /\n/
+
+%ignore /[ \t]+/
+%ignore COMMENT
+%ignore NOTUSED

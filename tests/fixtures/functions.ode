@@ -1,0 +1,16 @@
+# Test file with function definitions
+
+par a=1.0
+par b=2.0
+
+# Function definitions
+f(x)=x*2
+g(x,y)=x+y
+sigmoid(x)=1/(1+exp(-x))
+
+# ODE using functions
+dv/dt=f(v)-g(a,b)
+
+init v=0.5
+
+done

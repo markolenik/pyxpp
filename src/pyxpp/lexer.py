@@ -18,6 +18,7 @@
 # Author: Mark Olenik, mark.olenik@gmail.com
 
 
+import re
 import ply.lex
 
 
@@ -87,7 +88,7 @@ t_APOSTROPHE = r"\'"
 
 # Ignore comments and "active comments".
 def t_COMMENT(t):
-    r"(?m)^(\#|\").*"
+    r"^(\#|\").*"
     pass
 
 
@@ -95,7 +96,7 @@ def t_COMMENT(t):
 # table, bdry, volt, markov, wiener, solv, special, set,
 # derived parameters, numbers, int, block pseudo-arrays.
 def t_NOTUSED(t):
-    r"(?m)^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*"
+    r"^(table|bdry|volt|markov|wiener|solv|special|set|!|number|int|\%(.|\n)*?\%).*"
     pass
 
 
@@ -128,22 +129,22 @@ def t_ELSE(t):
 
 
 def t_INIT(t):
-    r"(?m)^init"
+    r"^init"
     return t
 
 
 def t_PAR(t):
-    r"(?m)^p\w*"
+    r"^p\w*"
     return t
 
 
 def t_AUX(t):
-    r"(?m)^aux"
+    r"^aux"
     return t
 
 
 def t_OPT(t):
-    r"(?m)^\@"
+    r"^\@"
     return t
 
 
@@ -193,4 +194,4 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-lexer = ply.lex.lex(nowarn=True)
+lexer = ply.lex.lex(nowarn=True, reflags=re.MULTILINE)
