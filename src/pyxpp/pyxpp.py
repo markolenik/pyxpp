@@ -25,7 +25,7 @@ import re
 
 import numpy as np
 
-from . import parser
+from . import lark_parser as parser
 from . import generator
 
 
