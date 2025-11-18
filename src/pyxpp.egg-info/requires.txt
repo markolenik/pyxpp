@@ -1,0 +1,12 @@
+numpy
+ply
+
+[dev]
+black
+mypy
+flake8
+pyright
+
+[testing]
+setuptools
+pytest
